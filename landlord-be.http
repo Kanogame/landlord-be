@@ -1,6 +1,0 @@
-@landlord_be_HostAddress = http://localhost:5249
-
-GET {{landlord_be_HostAddress}}/weatherforecasts/
-Accept: application/json
-
-###

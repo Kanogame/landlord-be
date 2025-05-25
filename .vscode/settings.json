@@ -1,0 +1,14 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "landlord",
+            "database": "landlord_dev",
+            "username": "admin",
+            "password": "zeRdojD7"
+        }
+    ]
+}
