@@ -29,15 +29,23 @@ public class PropertyController : ControllerBase
         return Ok(await _context.Users.Select(u => u.Properties).ToListAsync());
     }
 
-    //[HttpPost("get_properties_by_search")]
-    //public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesByUserId(PropertyGetByUserDTO req)
-    //{
-    //    bool userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
-    //    if (!userExists)
-    //    {
-    //        BadRequest($"No user with id {req.UserId}");
-    //    }
-    //
-    //    return Ok(await _context.Users.Select(u => u.Properties).ToListAsync());
-    //}
+    [HttpPost("get_properties_search")]
+    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesSearch(PropertyGetSearchDTO req)
+    {
+        IQueryable<Property> query = _context.Properties.AsQueryable();
+
+        if (req.OfferType.HasValue)
+        {
+            query = query.Where(p => p.OfferTypeId == req.OfferType);
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+                .Skip((req.PageNumber - 1) * req.PageSize)
+                .Take(req.PageSize)
+                .ToListAsync();
+
+
+        return Ok(items);
+    }
 }

@@ -15,10 +15,10 @@ namespace landlord_be.Data
         {
             context.Database.EnsureCreated();
 
-            //if (context.Users.Any())
-            //{
-            //    return;
-            //}
+            if (context.Users.Any())
+            {
+                return;
+            }
 
             DateTime time = DateTime.Now.ToUniversalTime();
             var users = new List<User>
@@ -59,16 +59,16 @@ namespace landlord_be.Data
 
             var properties = new List<Property>
         {
-            new Property { OwnerId = users[0].Id, Name = "Дом с садом", Desc = "Просторный дом с большим садом", AddressId = 1, Area = 150, ImageLinkId = 2 },
-            new Property { OwnerId = users[1].Id, Name = "Студия у моря", Desc = "Студия с выходом на пляж", AddressId = 2, Area = 30, ImageLinkId = 3 },
-            new Property { OwnerId = users[2].Id, Name = "Коттедж в лесу", Desc = "Коттедж в живописном месте", AddressId = 3, Area = 200, ImageLinkId = 4 },
-            new Property { OwnerId = users[2].Id, Name = "Квартира в новостройке", Desc = "Современная квартира с ремонтом", AddressId = 4, Area = 75, ImageLinkId = 5 },
-            new Property { OwnerId = users[3].Id, Name = "Дача на природе", Desc = "Дача с возможностью рыбалки", AddressId = 5, Area = 100, ImageLinkId = 6 },
-            new Property { OwnerId = users[4].Id, Name = "Коммерческая недвижимость", Desc = "Помещение для бизнеса", AddressId = 6, Area = 120, ImageLinkId = 7 },
-            new Property { OwnerId = users[5].Id, Name = "Квартира с балконом", Desc = "Квартира с большим балконом", AddressId = 7, Area = 65, ImageLinkId = 8 },
-            new Property { OwnerId = users[6].Id, Name = "Уютный дом", Desc = "Дом с камином и уютной атмосферой", AddressId = 8, Area = 90, ImageLinkId = 9 },
-            new Property { OwnerId = users[7].Id, Name = "Студия в центре", Desc = "Студия в центре города", AddressId = 9, Area = 40, ImageLinkId = 10 },
-            new Property { OwnerId = users[8].Id, Name = "Коттедж у озера", Desc = "Коттедж с выходом к озеру", AddressId = 10, Area = 180, ImageLinkId = 11 },
+            new Property { OwnerId = users[0].Id, OfferTypeId=OfferType.Rent, PropertyTypeId=PropertyType.Flat, Name = "Дом с садом", Desc = "Просторный дом с большим садом", AddressId = 1, Area = 150, ImageLinkId = 2 },
+            new Property { OwnerId = users[1].Id, OfferTypeId=OfferType.Sell, PropertyTypeId=PropertyType.Flat, Name = "Студия у моря", Desc = "Студия с выходом на пляж", AddressId = 2, Area = 30, ImageLinkId = 3 },
+            new Property { OwnerId = users[2].Id, OfferTypeId=OfferType.Rent, PropertyTypeId=PropertyType.Detached, Name = "Коттедж в лесу", Desc = "Коттедж в живописном месте", AddressId = 3, Area = 200, ImageLinkId = 4 },
+            new Property { OwnerId = users[2].Id, OfferTypeId=OfferType.Rent, PropertyTypeId=PropertyType.Flat, Name = "Квартира в новостройке", Desc = "Современная квартира с ремонтом", AddressId = 4, Area = 75, ImageLinkId = 5 },
+            new Property { OwnerId = users[3].Id, OfferTypeId=OfferType.Sell, PropertyTypeId=PropertyType.Flat, Name = "Дача на природе", Desc = "Дача с возможностью рыбалки", AddressId = 5, Area = 100, ImageLinkId = 6 },
+            new Property { OwnerId = users[4].Id, OfferTypeId=OfferType.Rent, PropertyTypeId=PropertyType.Detached, Name = "Коммерческая недвижимость", Desc = "Помещение для бизнеса", AddressId = 6, Area = 120, ImageLinkId = 7 },
+            new Property { OwnerId = users[5].Id, OfferTypeId=OfferType.Sell, PropertyTypeId=PropertyType.Flat, Name = "Квартира с балконом", Desc = "Квартира с большим балконом", AddressId = 7, Area = 65, ImageLinkId = 8 },
+            new Property { OwnerId = users[6].Id, OfferTypeId=OfferType.Rent, PropertyTypeId=PropertyType.Commercial, Name = "Уютный дом", Desc = "Дом с камином и уютной атмосферой", AddressId = 8, Area = 90, ImageLinkId = 9 },
+            new Property { OwnerId = users[7].Id, OfferTypeId=OfferType.Sell, PropertyTypeId=PropertyType.Commercial, Name = "Студия в центре", Desc = "Студия в центре города", AddressId = 9, Area = 40, ImageLinkId = 10 },
+            new Property { OwnerId = users[8].Id, OfferTypeId=OfferType.Sell, PropertyTypeId=PropertyType.Detached, Name = "Коттедж у озера", Desc = "Коттедж с выходом к озеру", AddressId = 10, Area = 180, ImageLinkId = 11 },
         };
 
             properties.ForEach(p => context.Properties.Add(p));
