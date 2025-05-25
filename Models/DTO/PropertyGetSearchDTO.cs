@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace landlord_be.Models.DTO
 {
-    public class PropertyGetSearchDTO
+    public class PropertyGetSearchReqDTO
     {
         [Range(1, int.MaxValue)]
         [Required(ErrorMessage = "PageNumber is required")]
@@ -13,6 +13,13 @@ namespace landlord_be.Models.DTO
         public int PageSize { get; set; } = 10;
 
         public OfferType? OfferType { get; set; }
+
+    }
+    public class PropertyGetSearchRespDTO
+    {
+        public int Count { get; set; }
+
+        public IEnumerable<Property>? Properties { get; set; }
 
     }
 

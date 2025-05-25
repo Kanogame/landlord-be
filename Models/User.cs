@@ -10,7 +10,7 @@ namespace landlord_be.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; } = "";
+        public string OwnerId { get; set; } = "";
 
         [Required]
         public string PasswordHash { get; set; } = "";

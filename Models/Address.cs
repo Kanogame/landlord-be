@@ -25,6 +25,13 @@ namespace landlord_be
         [Required]
         public int Story { get; set; }
 
+        [NotMapped]
+        public string DisplayAddress { 
+            get {
+            return $"{Street} г.{City}";
+            }
+        }
+
         // relations
         public Property? Property { get; set; }
     }

@@ -3,6 +3,7 @@ using landlord_be.Models;
 using landlord_be.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace landlord_be.Controllers;
 
@@ -30,7 +31,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_search")]
-    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesSearch(PropertyGetSearchDTO req)
+    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesSearch(PropertyGetSearchReqDTO req)
     {
         IQueryable<Property> query = _context.Properties.AsQueryable();
 
@@ -43,6 +44,9 @@ public class PropertyController : ControllerBase
         var items = await query
                 .Skip((req.PageNumber - 1) * req.PageSize)
                 .Take(req.PageSize)
+                .Include(p => p.Address)
+                .Include(p=> p.ImageLinks)
+                .AsNoTracking()
                 .ToListAsync();
 
 

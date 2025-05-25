@@ -23,7 +23,7 @@ namespace landlord_be.Data
             DateTime time = DateTime.Now.ToUniversalTime();
             var users = new List<User>
             {
-                new User { Name = "Иван Иванов", PasswordHash = "hash1", Token = "token1", RegisterDate = time, UpdateDate = time },
+            new User { Name = "Иван Иванов", PasswordHash = "hash1", Token = "token1", RegisterDate = time, UpdateDate = time },
             new User { Name = "Петр Петров", PasswordHash = "hash2", Token = "token2", RegisterDate = time, UpdateDate = time },
             new User { Name = "Сергей Сергеев", PasswordHash = "hash3", Token = "token3", RegisterDate = time, UpdateDate = time },
             new User { Name = "Алексей Алексеев", PasswordHash = "hash4", Token = "token4", RegisterDate = time, UpdateDate = time },
