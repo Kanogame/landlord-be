@@ -1,17 +1,21 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace landlord_be.Models {
-    public class ImageLink {
+namespace landlord_be.Models
+{
+    public class ImageLink
+    {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id {get; set;}
+        public int Id { get; set; }
 
         [Required]
-        public int PropertyId {get; set;}
+        public int PropertyId { get; set; }
 
         [Required]
         [StringLength(255)]
-        public string Link {get; set;}
+        public string Link { get; set; } = "";
+
+        public Property? Property { get; set; }
     }
 }
