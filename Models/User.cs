@@ -10,10 +10,14 @@ namespace landlord_be.Models
         public int Id { get; set; }
 
         [Required]
-        public string OwnerId { get; set; } = "";
+        public int PersonalId { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; } = "";
+        public string NumberHash { get; set; } = "";
+
+        [Required]
+
+	public bool NumberVerification {get; set; }
 
         [Required]
         public string Token { get; set; } = "";
@@ -24,5 +28,7 @@ namespace landlord_be.Models
 
         // relations
         public ICollection<Property>? Properties { get; set; }
+    
+    	public Personal? Personal { get; set; }
     }
 }

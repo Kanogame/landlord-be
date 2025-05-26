@@ -45,7 +45,9 @@ public class PropertyController : ControllerBase
                 .Skip((req.PageNumber - 1) * req.PageSize)
                 .Take(req.PageSize)
                 .Include(p => p.Address)
-                .Include(p=> p.ImageLinks)
+                .Include(p => p.ImageLinks)
+                .Include(p => p.User)
+	            .ThenInclude(
                 .AsNoTracking()
                 .ToListAsync();
 
