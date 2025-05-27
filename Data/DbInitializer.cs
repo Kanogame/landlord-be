@@ -83,7 +83,19 @@ namespace landlord_be.Data
                 },
                 new Personal
                 {
-                    FirstName = "Татьяна",
+                    FirstName = "Т1атьяна",
+                    LastName = "Татьянова",
+                    Patronym = "Иванович",
+                },
+                new Personal
+                {
+                    FirstName = "Т2атьяна",
+                    LastName = "Татьянова",
+                    Patronym = "Иванович",
+                },
+                new Personal
+                {
+                    FirstName = "Т3атьяна",
                     LastName = "Татьянова",
                     Patronym = "Иванович",
                 },
@@ -94,12 +106,12 @@ namespace landlord_be.Data
 
             var users = new List<User>();
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 11; i++)
             {
                 users.Add(
                     new User
                     {
-                        PersonalId = personals[0].Id,
+                        PersonalId = personals[i].Id,
                         NumberHash = "hash1",
                         Email = "some@mail.ru",
                         NumberVerification = true,

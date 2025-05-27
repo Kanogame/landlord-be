@@ -81,11 +81,11 @@ namespace landlord_be.Models
         public int Area { get; set; }
 
         // Finance
-        public int Price { get; set; }
-
         [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Currency { get; set; }
+        public decimal Price { get; set; }
+
+        public int Currency { get; set; }
 
         // Rent only
         public float Raiting { get; set; }
@@ -102,5 +102,68 @@ namespace landlord_be.Models
         {
             return $"/property/{Id}";
         }
+    }
+
+    public class DTOProperty
+    {
+        public DTOProperty(Property prop, string? username, string? profileLink)
+        {
+            OwnerId = prop.OwnerId;
+            OfferTypeId = prop.OfferTypeId;
+            PropertyTypeId = prop.PropertyTypeId;
+            Name = prop.Name;
+            Desc = prop.Desc;
+            Address = prop.Address;
+            Area = prop.Area;
+            Price = new Money(prop.Price, prop.Currency);
+            ImageLinks = prop.ImageLinks;
+            Raiting = prop.Raiting;
+            Period = prop.Period;
+            PropertyAttributes = prop.PropertyAttributes;
+
+            PropertyLink = prop.GetPropertyLink();
+            Username = username != null ? username : "";
+            ProfileLink = profileLink != null ? profileLink : "not_found";
+        }
+
+        public int OwnerId { get; set; }
+        public OfferType OfferTypeId { get; set; }
+        public PropertyType PropertyTypeId { get; set; }
+
+        public string Name { get; set; } = "";
+
+        public string Desc { get; set; } = "";
+        public int Area { get; set; }
+
+        // Finance
+        public Money Price { get; set; }
+
+        // Rent only
+        public float Raiting { get; set; }
+
+        public RentPeriod Period { get; set; }
+
+        public Address? Address { get; set; }
+
+        public IEnumerable<ImageLink>? ImageLinks { get; set; }
+        public ICollection<PropertyAttribute>? PropertyAttributes { get; set; }
+
+        public string PropertyLink { get; set; }
+        public string Username { get; set; }
+        public string ProfileLink { get; set; }
+    }
+
+    public class Money
+    {
+        public Money(decimal amount, int currency)
+        {
+            Amount = amount.ToString();
+            Currency = currency;
+        }
+
+        public string Amount { get; set; }
+        public int Currency { get; set; }
+
+        public string CurrencySymbol { get; set; } = "P";
     }
 }

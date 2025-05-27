@@ -46,19 +46,21 @@ public class PropertyController : ControllerBase
 
         var totalCount = await query.CountAsync();
         List<PropertyGetSearchRespElDTO> items = await query
-            .Where(p => p.IsDisplayed) // hiding properties that are not displayed
+            .Where(p => p.Status == PropertyStatus.Active || p.Status == PropertyStatus.RentEnding) // hiding properties that are not displayed
             .Skip((req.PageNumber - 1) * req.PageSize)
             .Take(req.PageSize) // pagination
             .Include(p => p.User)
             .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
             .Select(p => new PropertyGetSearchRespElDTO(
                 p,
                 p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
-                p.User.GetProfileLink()
+                p.User != null ? p.User.GetProfileLink() : null
             ))
             .AsNoTracking()
             .ToListAsync();
 
-        return Ok(items);
+        return Ok(new PropertyGetSearchRespDTO { Count = totalCount, Properties = items });
     }
 }
