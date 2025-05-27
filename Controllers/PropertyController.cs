@@ -32,6 +32,39 @@ public class PropertyController : ControllerBase
         return Ok(await _context.Users.Select(u => u.Properties).ToListAsync());
     }
 
+    [HttpPost("get_property_by_id")]
+    public async Task<ActionResult<DTOProperty>> GetPropertyById(
+        PropertyGetByIdDTO req
+    )
+    {
+        bool userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
+        if (!userExists)
+        {
+            return BadRequest($"No user with id {req.UserId}");
+        }
+
+        var property = await _context.Properties
+            .Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes)
+            .FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.OwnerId == req.UserId);
+
+        if (property == null)
+        {
+            return NotFound($"Property with id {req.PropertyId} not found for user {req.UserId}");
+        }
+
+        var dtoProperty = new DTOProperty(
+            property,
+            property.User?.Personal?.FirstName,
+            property.User?.GetProfileLink()
+        );
+
+        return Ok(dtoProperty);
+    }
+
     [HttpPost("get_properties_search")]
     public async Task<ActionResult<IEnumerable<PropertyGetSearchRespDTO>>> GetPropertiesSearch(
         PropertyGetSearchReqDTO req
