@@ -16,10 +16,11 @@ namespace landlord_be.Models
         public string NumberHash { get; set; } = "";
 
         [Required]
-
-	public bool NumberVerification {get; set; }
+        public string Email { get; set; } = "";
 
         [Required]
+        public bool NumberVerification { get; set; }
+
         public string Token { get; set; } = "";
 
         public DateTime RegisterDate { get; set; }
@@ -28,7 +29,12 @@ namespace landlord_be.Models
 
         // relations
         public ICollection<Property>? Properties { get; set; }
-    
-    	public Personal? Personal { get; set; }
+
+        public Personal? Personal { get; set; }
+
+        public string GetProfileLink()
+        {
+            return $"/profile/{Id}";
+        }
     }
 }

@@ -26,10 +26,9 @@ namespace landlord_be
         public int Story { get; set; }
 
         [NotMapped]
-        public string DisplayAddress { 
-            get {
-            return $"{Street} г.{City}";
-            }
+        public string DisplayAddress
+        {
+            get { return $"{Street} г.{City}"; }
         }
 
         // relations

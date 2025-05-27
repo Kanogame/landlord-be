@@ -1,4 +1,3 @@
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,21 +10,24 @@ namespace landlord_be.Models
         public int Id { get; set; }
 
         [Required]
-	[StringLength(255)]
-        public string Name { get; set; }
+        [StringLength(255)]
+        public string FirstName { get; set; } = "";
 
         [Required]
-	[StringLength(255)]
-        public string Surname { get; set; }
+        [StringLength(255)]
+        public string LastName { get; set; } = "";
 
-	[Required]
-	[StringLength(255)]
-        public string Patronym { get; set; }
+        [Required]
+        [StringLength(255)]
+        public string Patronym { get; set; } = "";
 
         [NotMapped]
-        public string FullName { get {
-		return $"{Name} {Surname} {Patronym}";
-	    }
-	}
+        public string FullName
+        {
+            get { return $"{FirstName} {LastName} {Patronym}"; }
+        }
+
+        // relations
+        public User? User { get; set; }
     }
 }

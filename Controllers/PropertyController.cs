@@ -19,7 +19,9 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_by_user_id")]
-    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesByUserId(PropertyGetByUserDTO req)
+    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesByUserId(
+        PropertyGetByUserDTO req
+    )
     {
         bool userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
         if (!userExists)
@@ -31,7 +33,9 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_search")]
-    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesSearch(PropertyGetSearchReqDTO req)
+    public async Task<ActionResult<IEnumerable<PropertyGetSearchRespDTO>>> GetPropertiesSearch(
+        PropertyGetSearchReqDTO req
+    )
     {
         IQueryable<Property> query = _context.Properties.AsQueryable();
 
@@ -41,16 +45,19 @@ public class PropertyController : ControllerBase
         }
 
         var totalCount = await query.CountAsync();
-        var items = await query
-                .Skip((req.PageNumber - 1) * req.PageSize)
-                .Take(req.PageSize)
-                .Include(p => p.Address)
-                .Include(p => p.ImageLinks)
-                .Include(p => p.User)
-	            .ThenInclude(
-                .AsNoTracking()
-                .ToListAsync();
-
+        List<PropertyGetSearchRespElDTO> items = await query
+            .Where(p => p.IsDisplayed) // hiding properties that are not displayed
+            .Skip((req.PageNumber - 1) * req.PageSize)
+            .Take(req.PageSize) // pagination
+            .Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Select(p => new PropertyGetSearchRespElDTO(
+                p,
+                p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
+                p.User.GetProfileLink()
+            ))
+            .AsNoTracking()
+            .ToListAsync();
 
         return Ok(items);
     }
