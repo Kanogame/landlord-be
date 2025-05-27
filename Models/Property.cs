@@ -166,4 +166,16 @@ namespace landlord_be.Models
 
         public string CurrencySymbol { get; set; } = "P";
     }
+
+    public class DTOPropertyWithType
+    {
+        public DTOPropertyWithType(Property property, string? username, string? profileLink)
+        {
+            Type = property.OfferTypeId;
+            Property = new DTOProperty(property, username, profileLink);
+        }
+
+        public OfferType Type { get; set; }
+        public DTOProperty Property { get; set; }
+    }
 }

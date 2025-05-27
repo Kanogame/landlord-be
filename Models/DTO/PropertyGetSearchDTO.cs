@@ -19,18 +19,6 @@ namespace landlord_be.Models.DTO
     {
         public int Count { get; set; }
 
-        public IEnumerable<PropertyGetSearchRespElDTO>? Properties { get; set; }
-    }
-
-    public class PropertyGetSearchRespElDTO
-    {
-        public PropertyGetSearchRespElDTO(Property property, string? username, string? profileLink)
-        {
-            Type = property.OfferTypeId;
-            Property = new DTOProperty(property, username, profileLink);
-        }
-
-        public OfferType Type { get; set; }
-        public DTOProperty Property { get; set; }
+        public IEnumerable<DTOPropertyWithType>? Properties { get; set; }
     }
 }

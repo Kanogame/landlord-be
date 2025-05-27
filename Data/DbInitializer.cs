@@ -245,7 +245,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Просторная 3-комнатная квартира",
-                    Desc = "Квартира в центре с евроремонтом",
+                    Desc = " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas mattis aliquet lacus nec bibendum. Sed rutrum nunc eros, accumsan sagittis  libero gravida id. Duis purus libero, posuere quis rutrum in, bibendum  eget ex. Morbi magna nunc, accumsan in fermentum vel, sollicitudin quis  arcu. Pellentesque urna libero, euismod scelerisque sollicitudin nec,  venenatis eget lectus. Integer molestie nulla in luctus iaculis. Donec  finibus semper urna in tempus. Nam nec dui quis lectus fringilla  ullamcorper. Integer at porttitor arcu, ac dignissim lectus. Quisque maximus tempor ante, vel cursus orci euismod eu. Morbi ut nisi  ornare, tincidunt justo non, lobortis augue. Donec nisl nibh, iaculis  sit amet ultrices sit amet, tincidunt a est. Pellentesque non leo nec  ipsum auctor eleifend. ",
                     AddressId = addresses[0].Id,
                     Area = 85,
                     Price = 75000,
@@ -472,7 +472,7 @@ namespace landlord_be.Data
                     new ImageLink
                     {
                         PropertyId = properties[id].Id,
-                        Link = "https://example.com/images/property" + (id + 1) + "_1.jpg",
+                        Link = "https://example.com/images/1" + (id + 1) + "_1.jpg",
                     }
                 );
             }

@@ -33,30 +33,19 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_property_by_id")]
-    public async Task<ActionResult<DTOProperty>> GetPropertyById(
-        PropertyGetByIdDTO req
-    )
+    public async Task<ActionResult<DTOProperty>> GetPropertyById(PropertyGetByIdDTO req)
     {
-        bool userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
-        if (!userExists)
-        {
-            return BadRequest($"No user with id {req.UserId}");
-        }
-
-        var property = await _context.Properties
-            .Include(p => p.User)
+        var property = await _context
+            .Properties.Include(p => p.User)
             .ThenInclude(u => u.Personal)
             .Include(p => p.Address)
             .Include(p => p.ImageLinks)
             .Include(p => p.PropertyAttributes)
-            .FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.OwnerId == req.UserId);
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == req.PropertyId);
 
-        if (property == null)
-        {
-            return NotFound($"Property with id {req.PropertyId} not found for user {req.UserId}");
-        }
-
-        var dtoProperty = new DTOProperty(
+        var dtoProperty = new DTOPropertyWithType(
             property,
             property.User?.Personal?.FirstName,
             property.User?.GetProfileLink()
@@ -78,7 +67,7 @@ public class PropertyController : ControllerBase
         }
 
         var totalCount = await query.CountAsync();
-        List<PropertyGetSearchRespElDTO> items = await query
+        List<DTOPropertyWithType> items = await query
             .Where(p => p.Status == PropertyStatus.Active || p.Status == PropertyStatus.RentEnding) // hiding properties that are not displayed
             .Skip((req.PageNumber - 1) * req.PageSize)
             .Take(req.PageSize) // pagination
@@ -86,7 +75,7 @@ public class PropertyController : ControllerBase
             .ThenInclude(u => u.Personal)
             .Include(p => p.Address)
             .Include(p => p.ImageLinks)
-            .Select(p => new PropertyGetSearchRespElDTO(
+            .Select(p => new DTOPropertyWithType(
                 p,
                 p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
                 p.User != null ? p.User.GetProfileLink() : null
