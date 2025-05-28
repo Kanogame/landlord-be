@@ -18,9 +18,6 @@ namespace landlord_be.Models
         [Required]
         public string Email { get; set; } = "";
 
-        [Required]
-        public bool NumberVerification { get; set; }
-
         public string Token { get; set; } = "";
 
         public DateTime RegisterDate { get; set; }

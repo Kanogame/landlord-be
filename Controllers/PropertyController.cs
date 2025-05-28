@@ -26,7 +26,7 @@ public class PropertyController : ControllerBase
         bool userExists = await _context.Users.AnyAsync(u => u.Id == req.UserId);
         if (!userExists)
         {
-            BadRequest($"No user with id {req.UserId}");
+            return BadRequest(new BadRequestMessage($"No user with id {req.UserId}"));
         }
 
         return Ok(await _context.Users.Select(u => u.Properties).ToListAsync());
@@ -35,6 +35,11 @@ public class PropertyController : ControllerBase
     [HttpPost("get_property_by_id")]
     public async Task<ActionResult<DTOProperty>> GetPropertyById(PropertyGetByIdDTO req)
     {
+        bool propertyExists = await _context.Properties.AnyAsync(p => p.Id == req.PropertyId);
+        if (!propertyExists)
+        {
+            return BadRequest(new BadRequestMessage($"No property with id {req.PropertyId}"));
+        }
         var property = await _context
             .Properties.Include(p => p.User)
             .ThenInclude(u => u.Personal)

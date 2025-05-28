@@ -17,6 +17,7 @@ namespace landlord_be.Data
         // user
         public DbSet<User> Users => Set<User>();
         public DbSet<Personal> Personals => Set<Personal>();
+        public DbSet<VerificationPending> VerificationPendings => Set<VerificationPending>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
