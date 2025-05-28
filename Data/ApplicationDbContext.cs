@@ -19,6 +19,10 @@ namespace landlord_be.Data
         public DbSet<Personal> Personals => Set<Personal>();
         public DbSet<VerificationPending> VerificationPendings => Set<VerificationPending>();
 
+        // chat
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // property

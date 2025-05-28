@@ -82,7 +82,7 @@ public class UserController : ControllerBase
         var record = await _context.VerificationPendings.FirstOrDefaultAsync(v =>
             v.Id == req.VerificationId
         );
-        
+
         if (record == null)
         {
             return BadRequest(new BadRequestMessage("Invalid verification ID"));
@@ -121,11 +121,15 @@ public class UserController : ControllerBase
     )
     {
         // Validate input
-        if (string.IsNullOrWhiteSpace(req.FirstName) || 
-            string.IsNullOrWhiteSpace(req.LastName) || 
-            string.IsNullOrWhiteSpace(req.Email))
+        if (
+            string.IsNullOrWhiteSpace(req.FirstName)
+            || string.IsNullOrWhiteSpace(req.LastName)
+            || string.IsNullOrWhiteSpace(req.Email)
+        )
         {
-            return BadRequest(new BadRequestMessage("First name, last name, and email are required"));
+            return BadRequest(
+                new BadRequestMessage("First name, last name, and email are required")
+            );
         }
 
         // Basic email validation
@@ -149,8 +153,9 @@ public class UserController : ControllerBase
         }
 
         // Check if email already exists (case-insensitive)
-        bool emailExists = await _context.Users.AnyAsync(u => 
-            u.Email.ToLower() == req.Email.ToLower());
+        bool emailExists = await _context.Users.AnyAsync(u =>
+            u.Email.ToLower() == req.Email.ToLower()
+        );
         if (emailExists)
         {
             return BadRequest(new BadRequestMessage("User with this email already exists"));
@@ -203,13 +208,7 @@ public class UserController : ControllerBase
 
             await transaction.CommitAsync();
 
-            return Ok(
-                new VerificationPersonalRespDTO
-                {
-                    Success = true,
-                    Token = token,
-                }
-            );
+            return Ok(new VerificationPersonalRespDTO { Success = true, Token = token });
         }
         catch (Exception)
         {
@@ -220,9 +219,7 @@ public class UserController : ControllerBase
 
     // LOGIN ENDPOINTS
     [HttpPost("login/send-code")]
-    public async Task<ActionResult<LoginSendCodeRespDTO>> LoginSendCode(
-        LoginSendCodeReqDTO req
-    )
+    public async Task<ActionResult<LoginSendCodeRespDTO>> LoginSendCode(LoginSendCodeReqDTO req)
     {
         // Validate input
         if (string.IsNullOrWhiteSpace(req.Number))
@@ -234,10 +231,10 @@ public class UserController : ControllerBase
         string numberHash = BitConverter.ToString(hash).Replace("-", String.Empty);
 
         // Check if user exists
-        var user = await _context.Users
-            .Include(u => u.Personal)
+        var user = await _context
+            .Users.Include(u => u.Personal)
             .FirstOrDefaultAsync(u => u.NumberHash == numberHash);
-        
+
         if (user == null)
         {
             return BadRequest(new BadRequestMessage("User with this phone number not found"));
@@ -271,7 +268,7 @@ public class UserController : ControllerBase
         var record = await _context.VerificationPendings.FirstOrDefaultAsync(v =>
             v.Id == req.VerificationId
         );
-        
+
         if (record == null)
         {
             return BadRequest(new BadRequestMessage("Invalid verification ID"));
@@ -283,8 +280,8 @@ public class UserController : ControllerBase
         }
 
         // Get user data
-        var user = await _context.Users
-            .Include(u => u.Personal)
+        var user = await _context
+            .Users.Include(u => u.Personal)
             .FirstOrDefaultAsync(u => u.NumberHash == record.NumberHash);
 
         if (user == null)
@@ -303,19 +300,21 @@ public class UserController : ControllerBase
         _context.VerificationPendings.Remove(record);
         await _context.SaveChangesAsync();
 
-        return Ok(new LoginVerifyCodeRespDTO 
-        { 
-            Success = true, 
-            Token = token,
-            User = new UserInfoDTO
+        return Ok(
+            new LoginVerifyCodeRespDTO
             {
-                Id = user.Id,
-                FirstName = user.Personal?.FirstName ?? "",
-                LastName = user.Personal?.LastName ?? "",
-                Patronym = user.Personal?.Patronym ?? "",
-                Email = user.Email
+                Success = true,
+                Token = token,
+                User = new UserInfoDTO
+                {
+                    Id = user.Id,
+                    FirstName = user.Personal?.FirstName ?? "",
+                    LastName = user.Personal?.LastName ?? "",
+                    Patronym = user.Personal?.Patronym ?? "",
+                    Email = user.Email,
+                },
             }
-        });
+        );
     }
 
     private string GenerateJwtToken(User user, string firstName, string email)
