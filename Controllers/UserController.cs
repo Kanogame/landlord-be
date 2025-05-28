@@ -7,7 +7,6 @@ using landlord_be.Models;
 using landlord_be.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.IdentityModel.Tokens;
 
 namespace landlord_be.Controllers;
@@ -27,16 +26,40 @@ public class UserController : ControllerBase
         rd = new Random();
     }
 
-    [HttpPost("verification_number")]
-    public async Task<ActionResult<VerificationNumberRespDTO>> VerificationNumber(
+    // REGISTRATION ENDPOINTS
+    [HttpPost("register/send-code")]
+    public async Task<ActionResult<VerificationNumberRespDTO>> RegisterSendCode(
         VerificationNumberReqDTO req
     )
     {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(req.Number))
+        {
+            return BadRequest(new BadRequestMessage("Phone number is required"));
+        }
+
+        // Basic phone number validation (you might want to add more sophisticated validation)
+        if (req.Number.Length < 10)
+        {
+            return BadRequest(new BadRequestMessage("Invalid phone number format"));
+        }
+
         byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(req.Number));
         string numberHash = BitConverter.ToString(hash).Replace("-", String.Empty);
 
+        // Check if user already exists with this phone number
+        bool userExists = await _context.Users.AnyAsync(u => u.NumberHash == numberHash);
+        if (userExists)
+        {
+            return BadRequest(new BadRequestMessage("User with this phone number already exists"));
+        }
+
+        // Remove any existing pending verifications for this number (cleanup old attempts)
+        var existingPending = _context.VerificationPendings.Where(v => v.NumberHash == numberHash);
+        _context.VerificationPendings.RemoveRange(existingPending);
+
         int code = rd.Next(100000, 999999);
-        Console.WriteLine(code);
+        Console.WriteLine($"Registration code for {req.Number}: {code}");
 
         var record = new VerificationPending
         {
@@ -46,31 +69,43 @@ public class UserController : ControllerBase
         };
 
         _context.VerificationPendings.Add(record);
-
         await _context.SaveChangesAsync();
 
         return Ok(new VerificationNumberRespDTO { Success = true, VerificationId = record.Id });
     }
 
-    [HttpPost("verification_code")]
-    public async Task<ActionResult<VerificationCodeRespDTO>> VerificationCode(
+    [HttpPost("register/verify-code")]
+    public async Task<ActionResult<VerificationCodeRespDTO>> RegisterVerifyCode(
         VerificationCodeReqDTO req
     )
     {
-        bool codeExists = await _context.VerificationPendings.AnyAsync(v =>
+        var record = await _context.VerificationPendings.FirstOrDefaultAsync(v =>
             v.Id == req.VerificationId
         );
-        if (!codeExists)
+        
+        if (record == null)
         {
-            return BadRequest(new BadRequestMessage("No such verification"));
+            return BadRequest(new BadRequestMessage("Invalid verification ID"));
         }
 
-        var record = await _context.VerificationPendings.FirstAsync(v =>
-            v.Id == req.VerificationId
-        );
         if (record.VerificationCode != req.Code)
         {
-            return BadRequest(new BadRequestMessage("No such verification"));
+            return BadRequest(new BadRequestMessage("Invalid verification code"));
+        }
+
+        // Check if verification is already completed
+        if (record.Verified)
+        {
+            return BadRequest(new BadRequestMessage("Verification code already used"));
+        }
+
+        // Double-check that user doesn't exist (race condition protection)
+        bool userExists = await _context.Users.AnyAsync(u => u.NumberHash == record.NumberHash);
+        if (userExists)
+        {
+            _context.VerificationPendings.Remove(record);
+            await _context.SaveChangesAsync();
+            return BadRequest(new BadRequestMessage("User with this phone number already exists"));
         }
 
         record.Verified = true;
@@ -80,78 +115,223 @@ public class UserController : ControllerBase
         return Ok(new VerificationCodeRespDTO { Success = true });
     }
 
-    [HttpPost("verification_personal")]
-    public async Task<ActionResult<VerificationPersonalRespDTO>> VerificationPersonal(
+    [HttpPost("register/complete")]
+    public async Task<ActionResult<VerificationPersonalRespDTO>> RegisterComplete(
         VerificationPersonalReqDTO req
     )
     {
-        bool codeExists = await _context.VerificationPendings.AnyAsync(v =>
-            v.Id == req.VerificationId
-        );
-        if (!codeExists)
+        // Validate input
+        if (string.IsNullOrWhiteSpace(req.FirstName) || 
+            string.IsNullOrWhiteSpace(req.LastName) || 
+            string.IsNullOrWhiteSpace(req.Email))
         {
-            return BadRequest(new BadRequestMessage("No such verification"));
+            return BadRequest(new BadRequestMessage("First name, last name, and email are required"));
         }
 
-        var record = await _context.VerificationPendings.FirstAsync(v =>
+        // Basic email validation
+        if (!IsValidEmail(req.Email))
+        {
+            return BadRequest(new BadRequestMessage("Invalid email format"));
+        }
+
+        var record = await _context.VerificationPendings.FirstOrDefaultAsync(v =>
             v.Id == req.VerificationId
         );
+
+        if (record == null)
+        {
+            return BadRequest(new BadRequestMessage("Invalid verification ID"));
+        }
 
         if (!record.Verified)
         {
-            return BadRequest(new BadRequestMessage("Verification not completed"));
+            return BadRequest(new BadRequestMessage("Phone number not verified"));
         }
 
-        var personal = new Personal
+        // Check if email already exists (case-insensitive)
+        bool emailExists = await _context.Users.AnyAsync(u => 
+            u.Email.ToLower() == req.Email.ToLower());
+        if (emailExists)
         {
-            FirstName = req.FirstName,
-            LastName = req.LastName,
-            Patronym = req.Patronym,
+            return BadRequest(new BadRequestMessage("User with this email already exists"));
+        }
+
+        // Double-check that user doesn't exist with this phone number (race condition protection)
+        bool userExists = await _context.Users.AnyAsync(u => u.NumberHash == record.NumberHash);
+        if (userExists)
+        {
+            _context.VerificationPendings.Remove(record);
+            await _context.SaveChangesAsync();
+            return BadRequest(new BadRequestMessage("User with this phone number already exists"));
+        }
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var personal = new Personal
+            {
+                FirstName = req.FirstName.Trim(),
+                LastName = req.LastName.Trim(),
+                Patronym = req.Patronym?.Trim() ?? "",
+            };
+
+            _context.Personals.Add(personal);
+            await _context.SaveChangesAsync();
+
+            DateTime time = DateTime.UtcNow;
+
+            var newUser = new User
+            {
+                PersonalId = personal.Id,
+                NumberHash = record.NumberHash,
+                Email = req.Email.ToLower().Trim(), // Store email in lowercase
+                Token = "null",
+                RegisterDate = time,
+                UpdateDate = time,
+            };
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            var token = GenerateJwtToken(newUser, req.FirstName, req.Email);
+
+            newUser.Token = token;
+            _context.Users.Update(newUser);
+
+            _context.VerificationPendings.Remove(record);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return Ok(
+                new VerificationPersonalRespDTO
+                {
+                    Success = true,
+                    Token = token,
+                }
+            );
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, new BadRequestMessage("Registration failed. Please try again."));
+        }
+    }
+
+    // LOGIN ENDPOINTS
+    [HttpPost("login/send-code")]
+    public async Task<ActionResult<LoginSendCodeRespDTO>> LoginSendCode(
+        LoginSendCodeReqDTO req
+    )
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(req.Number))
+        {
+            return BadRequest(new BadRequestMessage("Phone number is required"));
+        }
+
+        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(req.Number));
+        string numberHash = BitConverter.ToString(hash).Replace("-", String.Empty);
+
+        // Check if user exists
+        var user = await _context.Users
+            .Include(u => u.Personal)
+            .FirstOrDefaultAsync(u => u.NumberHash == numberHash);
+        
+        if (user == null)
+        {
+            return BadRequest(new BadRequestMessage("User with this phone number not found"));
+        }
+
+        int code = rd.Next(100000, 999999);
+        Console.WriteLine($"Login code for {req.Number}: {code}");
+
+        // Remove any existing verification records for this user
+        var existingRecords = _context.VerificationPendings.Where(v => v.NumberHash == numberHash);
+        _context.VerificationPendings.RemoveRange(existingRecords);
+
+        var record = new VerificationPending
+        {
+            VerificationCode = code,
+            Verified = false,
+            NumberHash = numberHash,
         };
 
-        _context.Personals.Add(personal);
+        _context.VerificationPendings.Add(record);
         await _context.SaveChangesAsync();
 
-        DateTime time = DateTime.UtcNow;
+        return Ok(new LoginSendCodeRespDTO { Success = true, VerificationId = record.Id });
+    }
 
-        var newUser = new User
+    [HttpPost("login/verify-code")]
+    public async Task<ActionResult<LoginVerifyCodeRespDTO>> LoginVerifyCode(
+        LoginVerifyCodeReqDTO req
+    )
+    {
+        var record = await _context.VerificationPendings.FirstOrDefaultAsync(v =>
+            v.Id == req.VerificationId
+        );
+        
+        if (record == null)
         {
-            PersonalId = personal.Id,
-            NumberHash = record.NumberHash,
-            Email = req.Email,
-            Token = "null",
-            RegisterDate = time,
-            UpdateDate = time,
-        };
+            return BadRequest(new BadRequestMessage("Invalid verification ID"));
+        }
 
-        _context.Users.Add(newUser);
+        if (record.VerificationCode != req.Code)
+        {
+            return BadRequest(new BadRequestMessage("Invalid verification code"));
+        }
+
+        // Get user data
+        var user = await _context.Users
+            .Include(u => u.Personal)
+            .FirstOrDefaultAsync(u => u.NumberHash == record.NumberHash);
+
+        if (user == null)
+        {
+            _context.VerificationPendings.Remove(record);
+            await _context.SaveChangesAsync();
+            return BadRequest(new BadRequestMessage("User not found"));
+        }
+
+        var token = GenerateJwtToken(user, user.Personal?.FirstName ?? "", user.Email);
+
+        user.Token = token;
+        user.UpdateDate = DateTime.UtcNow;
+        _context.Users.Update(user);
+
+        _context.VerificationPendings.Remove(record);
         await _context.SaveChangesAsync();
 
+        return Ok(new LoginVerifyCodeRespDTO 
+        { 
+            Success = true, 
+            Token = token,
+            User = new UserInfoDTO
+            {
+                Id = user.Id,
+                FirstName = user.Personal?.FirstName ?? "",
+                LastName = user.Personal?.LastName ?? "",
+                Patronym = user.Personal?.Patronym ?? "",
+                Email = user.Email
+            }
+        });
+    }
+
+    private string GenerateJwtToken(User user, string firstName, string email)
+    {
         var authClaims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, newUser.Id.ToString()),
-            new(ClaimTypes.Name, req.FirstName),
-            new(ClaimTypes.Email, req.Email),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, firstName),
+            new(ClaimTypes.Email, email),
             new(ClaimTypes.Role, "User"),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
         var token = GetToken(authClaims);
         var tokenHandler = new JwtSecurityTokenHandler();
-
-        newUser.Token = tokenHandler.WriteToken(token);
-        _context.Users.Update(newUser);
-
-        _context.VerificationPendings.Remove(record);
-        await _context.SaveChangesAsync();
-
-        return Ok(
-            new VerificationPersonalRespDTO
-            {
-                Success = true,
-                Token = tokenHandler.WriteToken(token),
-            }
-        );
+        return tokenHandler.WriteToken(token);
     }
 
     private JwtSecurityToken GetToken(List<Claim> authClaims)
@@ -182,5 +362,18 @@ public class UserController : ControllerBase
             return userId;
         }
         return null;
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
