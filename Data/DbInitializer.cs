@@ -463,18 +463,232 @@ namespace landlord_be.Data
             properties.ForEach(p => context.Properties.Add(p));
             context.SaveChanges();
 
+            // Add property attributes
+            var propertyAttributes = new List<PropertyAttribute>
+            {
+                // Attributes for the first property (3-room apartment)
+                new PropertyAttribute
+                {
+                    PropertyId = properties[0].Id,
+                    Name = "Количество комнат",
+                    Value = "3",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[0].Id,
+                    Name = "Парковка",
+                    Value = "Да",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[0].Id,
+                    Name = "Мебель",
+                    Value = "Частично меблирована",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[0].Id,
+                    Name = "Балкон",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                // Attributes for the second property (Studio by the sea)
+                new PropertyAttribute
+                {
+                    PropertyId = properties[1].Id,
+                    Name = "Количество комнат",
+                    Value = "1",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[1].Id,
+                    Name = "Вид из окна",
+                    Value = "Море",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[1].Id,
+                    Name = "Близость к пляжу",
+                    Value = "50",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                // Attributes for the cottage in the forest
+                new PropertyAttribute
+                {
+                    PropertyId = properties[2].Id,
+                    Name = "Количество комнат",
+                    Value = "5",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[2].Id,
+                    Name = "Камин",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[2].Id,
+                    Name = "Участок",
+                    Value = "15 соток",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[2].Id,
+                    Name = "Парковка",
+                    Value = "Гараж",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                // Attributes for apartment in new building
+                new PropertyAttribute
+                {
+                    PropertyId = properties[3].Id,
+                    Name = "Количество комнат",
+                    Value = "2",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[3].Id,
+                    Name = "Ремонт",
+                    Value = "Евроремонт",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[3].Id,
+                    Name = "Лифт",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                // Attributes for office space
+                new PropertyAttribute
+                {
+                    PropertyId = properties[5].Id,
+                    Name = "Тип помещения",
+                    Value = "Офис",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[5].Id,
+                    Name = "Кондиционер",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[5].Id,
+                    Name = "Интернет",
+                    Value = "Оптоволокно",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                // Attributes for penthouse
+                new PropertyAttribute
+                {
+                    PropertyId = properties[13].Id,
+                    Name = "Количество комнат",
+                    Value = "4",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[13].Id,
+                    Name = "Терраса",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[13].Id,
+                    Name = "Класс жилья",
+                    Value = "Премиум",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[13].Id,
+                    Name = "Консьерж",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+                // Attributes for warehouse
+                new PropertyAttribute
+                {
+                    PropertyId = properties[12].Id,
+                    Name = "Тип помещения",
+                    Value = "Склад",
+                    AttributeType = PropertyAttributeType.Text,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[12].Id,
+                    Name = "Высота потолков",
+                    Value = "6",
+                    AttributeType = PropertyAttributeType.Number,
+                    IsSearchable = true,
+                },
+                new PropertyAttribute
+                {
+                    PropertyId = properties[12].Id,
+                    Name = "Погрузочная рампа",
+                    Value = "true",
+                    AttributeType = PropertyAttributeType.Boolean,
+                    IsSearchable = true,
+                },
+            };
+
+            propertyAttributes.ForEach(a => context.Attributes.Add(a));
+            context.SaveChanges();
+
             var imageLinks = new List<ImageLink>();
 
             for (int i = 0; i < 12; i++)
             {
-                int id = rd.Next(0, properties.Count);
-                imageLinks.Add(
-                    new ImageLink
-                    {
-                        PropertyId = properties[id].Id,
-                        Link = "https://example.com/images/1" + (id + 1) + "_1.jpg",
-                    }
-                );
+                for (int j = 0; j < 5; j++)
+                {
+                    imageLinks.Add(
+                        new ImageLink
+                        {
+                            PropertyId = properties[i].Id,
+                            Link =
+                                "http://localhost:5249/public/images/"
+                                + (i + 1)
+                                + "_"
+                                + (j + 1)
+                                + ".webp",
+                        }
+                    );
+                }
             }
 
             imageLinks.ForEach(i => context.ImageLinks.Add(i));

@@ -23,14 +23,14 @@ public class PropertyController : ControllerBase
     {
         var searchableAttributes = await _context
             .Attributes.Where(a => a.IsSearchable)
-            .GroupBy(a => new { a.AttributeName, a.AttributeType })
+            .GroupBy(a => new { a.Name, a.AttributeType })
             .Select(g => new PropertySearchAttributeDTO
             {
-                AttributeName = g.Key.AttributeName,
+                AttributeName = g.Key.Name,
                 AttributeType = g.Key.AttributeType,
                 PossibleValues =
                     g.Key.AttributeType == PropertyAttributeType.Text
-                        ? g.Select(a => a.AttributeValue).Distinct().ToList()
+                        ? g.Select(a => a.Value).Distinct().ToList()
                         : new List<string>(),
             })
             .OrderBy(a => a.AttributeName)
@@ -81,32 +81,98 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_search")]
-    public async Task<ActionResult<IEnumerable<PropertyGetSearchRespDTO>>> GetPropertiesSearch(
+    public async Task<ActionResult<PropertyGetSearchRespDTO>> GetPropertiesSearch(
         PropertyGetSearchReqDTO req
     )
     {
-        IQueryable<Property> query = _context.Properties.AsQueryable();
+        // Start with base query including necessary joins for filtering
+        IQueryable<Property> query = _context
+            .Properties.Include(p => p.Address)
+            .Where(p => p.Status == PropertyStatus.Active || p.Status == PropertyStatus.RentEnding);
 
-        if (req.OfferType.HasValue)
+        // Apply filters
+        query = query.Where(p => p.OfferTypeId == (OfferType)req.OfferType);
+
+        if (req.PropertyType.HasValue)
         {
-            query = query.Where(p => p.OfferTypeId == req.OfferType);
+            query = query.Where(p => p.PropertyTypeId == (PropertyType)req.PropertyType.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(req.City))
+        {
+            query = query.Where(p => p.Address!.City.ToLower().Contains(req.City.ToLower()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(req.District))
+        {
+            query = query.Where(p =>
+                p.Address!.District.ToLower().Contains(req.District.ToLower())
+            );
+        }
+
+        if (req.PriceFrom.HasValue)
+        {
+            query = query.Where(p => p.Price >= req.PriceFrom.Value);
+        }
+
+        if (req.PriceTo.HasValue)
+        {
+            query = query.Where(p => p.Price <= req.PriceTo.Value);
+        }
+
+        if (req.FloorFrom.HasValue)
+        {
+            query = query.Where(p => p.Address!.Story >= req.FloorFrom.Value);
+        }
+
+        if (req.FloorTo.HasValue)
+        {
+            query = query.Where(p => p.Address!.Story <= req.FloorTo.Value);
+        }
+
+        if (req.Area.HasValue)
+        {
+            query = query.Where(p => p.Area >= req.Area.Value);
+        }
+
+        // Apply attribute filters if any
+        if (req.Attributes.Any())
+        {
+            foreach (var attribute in req.Attributes)
+            {
+                var attributeName = attribute.Name;
+                var attributeValue = attribute.Value;
+
+                // For each attribute filter, we need to check if the property has this attribute with the specified value
+                query = query.Where(p =>
+                    p.PropertyAttributes!.Any(pa =>
+                        pa.Name == attribute.Name
+                        && pa.Value.ToLower().Contains(attributeValue.ToLower())
+                    )
+                );
+            }
+        }
+
+        // Get total count before pagination (but after all filters)
         var totalCount = await query.CountAsync();
-        List<DTOPropertyWithType> items = await query
-            .Where(p => p.Status == PropertyStatus.Active || p.Status == PropertyStatus.RentEnding) // hiding properties that are not displayed
+
+        // Apply pagination and get final results with all necessary data
+        var items = await query
+            .OrderBy(p => p.Id) // Add consistent ordering for pagination
             .Skip((req.PageNumber - 1) * req.PageSize)
-            .Take(req.PageSize) // pagination
+            .Take(req.PageSize)
             .Include(p => p.User)
             .ThenInclude(u => u.Personal)
             .Include(p => p.Address)
             .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes)
+            .AsSplitQuery()
+            .AsNoTracking()
             .Select(p => new DTOPropertyWithType(
                 p,
                 p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
                 p.User != null ? p.User.GetProfileLink() : null
             ))
-            .AsNoTracking()
             .ToListAsync();
 
         return Ok(new PropertyGetSearchRespDTO { Count = totalCount, Properties = items });

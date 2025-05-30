@@ -15,10 +15,10 @@ namespace landlord_be.Models
 
         [Required]
         [StringLength(100)]
-        public string AttributeName { get; set; } = "";
+        public string Name { get; set; } = "";
 
         [StringLength(500)]
-        public string AttributeValue { get; set; } = "";
+        public string Value { get; set; } = "";
 
         [Required]
         public PropertyAttributeType AttributeType { get; set; }

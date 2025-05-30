@@ -12,7 +12,33 @@ namespace landlord_be.Models.DTO
         [Required(ErrorMessage = "PageSize is required")]
         public int PageSize { get; set; } = 10;
 
-        public OfferType? OfferType { get; set; }
+        [Required(ErrorMessage = "OfferType is required")]
+        public int OfferType { get; set; }
+
+        public int? PropertyType { get; set; }
+
+        public string? City { get; set; }
+
+        public string? District { get; set; }
+
+        public decimal? PriceFrom { get; set; }
+
+        public decimal? PriceTo { get; set; }
+
+        public int? FloorFrom { get; set; }
+
+        public int? FloorTo { get; set; }
+
+        public int? Area { get; set; }
+
+        public IEnumerable<PropertyAttribute> Attributes { get; set; } =
+            new List<PropertyAttribute>();
+    }
+
+    public class PropertyAttribute
+    {
+        public string Name { get; set; } = "";
+        public string Value { get; set; }
     }
 
     public class PropertyGetSearchRespDTO
