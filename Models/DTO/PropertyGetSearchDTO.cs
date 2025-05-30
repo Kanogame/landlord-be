@@ -31,14 +31,14 @@ namespace landlord_be.Models.DTO
 
         public int? Area { get; set; }
 
-        public IEnumerable<PropertyAttribute> Attributes { get; set; } =
-            new List<PropertyAttribute>();
+        public IEnumerable<PropertyAttributeDTO> Attributes { get; set; } =
+            new List<PropertyAttributeDTO>();
     }
 
-    public class PropertyAttribute
+    public class PropertyAttributeDTO
     {
         public string Name { get; set; } = "";
-        public string Value { get; set; }
+        public string Value { get; set; } = "";
     }
 
     public class PropertyGetSearchRespDTO

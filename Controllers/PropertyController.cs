@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using landlord_be.Data;
 using landlord_be.Models;
 using landlord_be.Models.DTO;
@@ -16,6 +17,38 @@ public class PropertyController : ControllerBase
     public PropertyController(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : null;
+    }
+
+    private async Task<bool> IsPropertyBookmarked(int propertyId, int? userId)
+    {
+        if (userId == null)
+            return false;
+
+        return await _context.Bookmarks.AnyAsync(b =>
+            b.UserId == userId && b.PropertyId == propertyId
+        );
+    }
+
+    private async Task<Dictionary<int, bool>> GetBookmarkStatusForProperties(
+        List<int> propertyIds,
+        int? userId
+    )
+    {
+        if (userId == null)
+            return propertyIds.ToDictionary(id => id, id => false);
+
+        var bookmarkedPropertyIds = await _context
+            .Bookmarks.Where(b => b.UserId == userId && propertyIds.Contains(b.PropertyId))
+            .Select(b => b.PropertyId)
+            .ToListAsync();
+
+        return propertyIds.ToDictionary(id => id, id => bookmarkedPropertyIds.Contains(id));
     }
 
     [HttpGet("get_search_attributes")]
@@ -40,7 +73,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_by_user_id")]
-    public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesByUserId(
+    public async Task<ActionResult<IEnumerable<PropertyGetSearchRespDTO>>> GetPropertiesByUserId(
         PropertyGetByUserDTO req
     )
     {
@@ -50,17 +83,51 @@ public class PropertyController : ControllerBase
             return BadRequest(new BadRequestMessage($"No user with id {req.UserId}"));
         }
 
-        return Ok(await _context.Users.Select(u => u.Properties).ToListAsync());
+        IQueryable<Property> query = _context.Properties.Where(p =>
+            p.Status == PropertyStatus.Active || p.Status == PropertyStatus.RentEnding
+        );
+
+        query = query.Where(p => p.OwnerId == req.UserId);
+
+        var totalCount = await query.CountAsync();
+        var properties = await _context
+            .Properties.Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync();
+
+        // Get current user ID for bookmark checking
+        var currentUserId = GetCurrentUserId();
+
+        // Get bookmark status for all properties if user is authenticated
+        var propertyIds = properties.Select(p => p.Id).ToList();
+        var bookmarkStatuses = await GetBookmarkStatusForProperties(propertyIds, currentUserId);
+
+        var items = properties
+            .Select(p => new DTOPropertyWithType(
+                p,
+                p.User?.Personal?.FirstName ?? null,
+                p.User?.GetProfileLink() ?? null,
+                currentUserId.HasValue ? bookmarkStatuses[p.Id] : null
+            ))
+            .ToList();
+
+        return Ok(new PropertyGetSearchRespDTO { Count = totalCount, Properties = items });
     }
 
     [HttpPost("get_property_by_id")]
-    public async Task<ActionResult<DTOProperty>> GetPropertyById(PropertyGetByIdDTO req)
+    public async Task<ActionResult<DTOPropertyWithType>> GetPropertyById(PropertyGetByIdDTO req)
     {
         bool propertyExists = await _context.Properties.AnyAsync(p => p.Id == req.PropertyId);
         if (!propertyExists)
         {
             return BadRequest(new BadRequestMessage($"No property with id {req.PropertyId}"));
         }
+
         var property = await _context
             .Properties.Include(p => p.User)
             .ThenInclude(u => u.Personal)
@@ -71,10 +138,19 @@ public class PropertyController : ControllerBase
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == req.PropertyId);
 
+        var currentUserId = GetCurrentUserId();
+        bool? isBookmarked = null;
+
+        if (currentUserId.HasValue)
+        {
+            isBookmarked = await IsPropertyBookmarked(req.PropertyId, currentUserId);
+        }
+
         var dtoProperty = new DTOPropertyWithType(
             property,
             property.User?.Personal?.FirstName,
-            property.User?.GetProfileLink()
+            property.User?.GetProfileLink(),
+            isBookmarked
         );
 
         return Ok(dtoProperty);
@@ -157,7 +233,7 @@ public class PropertyController : ControllerBase
         var totalCount = await query.CountAsync();
 
         // Apply pagination and get final results with all necessary data
-        var items = await query
+        var properties = await query
             .OrderBy(p => p.Id) // Add consistent ordering for pagination
             .Skip((req.PageNumber - 1) * req.PageSize)
             .Take(req.PageSize)
@@ -168,12 +244,23 @@ public class PropertyController : ControllerBase
             .Include(p => p.PropertyAttributes)
             .AsSplitQuery()
             .AsNoTracking()
+            .ToListAsync();
+
+        // Get current user ID for bookmark checking
+        var currentUserId = GetCurrentUserId();
+
+        // Get bookmark status for all properties if user is authenticated
+        var propertyIds = properties.Select(p => p.Id).ToList();
+        var bookmarkStatuses = await GetBookmarkStatusForProperties(propertyIds, currentUserId);
+
+        var items = properties
             .Select(p => new DTOPropertyWithType(
                 p,
                 p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
-                p.User != null ? p.User.GetProfileLink() : null
+                p.User != null ? p.User.GetProfileLink() : null,
+                currentUserId.HasValue ? bookmarkStatuses[p.Id] : null
             ))
-            .ToListAsync();
+            .ToList();
 
         return Ok(new PropertyGetSearchRespDTO { Count = totalCount, Properties = items });
     }

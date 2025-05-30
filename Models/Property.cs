@@ -106,7 +106,7 @@ namespace landlord_be.Models
 
     public class DTOProperty
     {
-        public DTOProperty(Property prop, string? username, string? profileLink)
+        public DTOProperty(Property prop, string? username, string? profileLink, bool? isBookmarked)
         {
             Id = prop.Id;
             OwnerId = prop.OwnerId;
@@ -123,8 +123,9 @@ namespace landlord_be.Models
             PropertyAttributes = prop.PropertyAttributes;
 
             PropertyLink = prop.GetPropertyLink();
-            Username = username != null ? username : "";
-            ProfileLink = profileLink != null ? profileLink : "not_found";
+            Username = username ?? "";
+            ProfileLink = profileLink ?? "not_found";
+            IsBookmarked = isBookmarked;
         }
 
         public int Id { get; set; }
@@ -154,6 +155,7 @@ namespace landlord_be.Models
         public string PropertyLink { get; set; }
         public string Username { get; set; }
         public string ProfileLink { get; set; }
+        public bool? IsBookmarked { get; set; }
     }
 
     public class Money
@@ -172,10 +174,15 @@ namespace landlord_be.Models
 
     public class DTOPropertyWithType
     {
-        public DTOPropertyWithType(Property property, string? username, string? profileLink)
+        public DTOPropertyWithType(
+            Property property,
+            string? username,
+            string? profileLink,
+            bool? isBookmarked
+        )
         {
             Type = property.OfferTypeId;
-            Property = new DTOProperty(property, username, profileLink);
+            Property = new DTOProperty(property, username, profileLink, isBookmarked);
         }
 
         public OfferType Type { get; set; }

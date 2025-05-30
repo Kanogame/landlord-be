@@ -22,6 +22,7 @@ namespace landlord_be.Data
         // chat
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Bookmark> Bookmarks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +54,27 @@ namespace landlord_be.Data
                 .HasOne(u => u.Personal)
                 .WithOne(p => p.User)
                 .HasForeignKey<User>(u => u.PersonalId);
+
+            // bookmark configurations
+            modelBuilder
+                .Entity<Bookmark>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder
+                .Entity<Bookmark>()
+                .HasOne(b => b.Property)
+                .WithMany()
+                .HasForeignKey(b => b.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Create unique constraint to prevent duplicate bookmarks
+            modelBuilder
+                .Entity<Bookmark>()
+                .HasIndex(b => new { b.UserId, b.PropertyId })
+                .IsUnique();
         }
     }
 }

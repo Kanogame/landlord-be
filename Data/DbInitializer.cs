@@ -458,6 +458,171 @@ namespace landlord_be.Data
                     Raiting = 4.3f,
                     Status = PropertyStatus.Active,
                 },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Загородный дом",
+                    Desc = "Дом для отдыха на выходные",
+                    AddressId = addresses[14].Id,
+                    Area = 110,
+                    Price = 15000,
+                    Currency = 125,
+                    Period = RentPeriod.Day,
+                    Raiting = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
             };
 
             properties.ForEach(p => context.Properties.Add(p));
@@ -672,7 +837,7 @@ namespace landlord_be.Data
 
             var imageLinks = new List<ImageLink>();
 
-            for (int i = 0; i < 12; i++)
+            for (int i = 0; i < 14; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {
@@ -682,7 +847,7 @@ namespace landlord_be.Data
                             PropertyId = properties[i].Id,
                             Link =
                                 "http://localhost:5249/public/images/"
-                                + (i + 1)
+                                + ((i + 1) % 9)
                                 + "_"
                                 + (j + 1)
                                 + ".webp",
