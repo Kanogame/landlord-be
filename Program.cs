@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using landlord_be.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,7 +52,34 @@ builder
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowSpecificOrigin",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5173") // Your frontend URL
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
+});
+
 var app = builder.Build();
+
+app.UseStaticFiles(); // For wwwroot folder
+app.UseStaticFiles(
+    new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "public")
+        ),
+        RequestPath = "/public",
+    }
+);
+
+app.UseCors("AllowSpecificOrigin");
 
 using (var scope = app.Services.CreateScope())
 {
