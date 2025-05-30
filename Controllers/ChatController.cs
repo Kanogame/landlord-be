@@ -5,6 +5,7 @@ using landlord_be.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace landlord_be.Controllers
 {
@@ -57,20 +58,49 @@ namespace landlord_be.Controllers
                 return Ok(new CreateChatRespDTO { Success = true, ChatId = existingChat.Id });
             }
 
-            // Create new chat
-            var newChat = new Chat
+            int newChatId = -1;
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                User1Id = currentUserId.Value,
-                User2Id = req.OtherUserId,
-                PropertyId = req.PropertyId,
-                CreatedDate = DateTime.UtcNow,
-                UpdatedDate = DateTime.UtcNow,
-            };
+                // Create new chat
+                var newChat = new Chat
+                {
+                    User1Id = currentUserId.Value,
+                    User2Id = req.OtherUserId,
+                    PropertyId = req.PropertyId,
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedDate = DateTime.UtcNow,
+                };
 
-            _context.Chats.Add(newChat);
-            await _context.SaveChangesAsync();
+                _context.Chats.Add(newChat);
+                await _context.SaveChangesAsync();
+                newChatId = newChat.Id;
 
-            return Ok(new CreateChatRespDTO { Success = true, ChatId = newChat.Id });
+                if (req.InitialMessage != "")
+                {
+                    // Send initial Message
+                    var message = new ChatMessage
+                    {
+                        ChatId = newChat.Id,
+                        SenderId = currentUserId.Value,
+                        Content = req.InitialMessage.Trim(),
+                        SentDate = DateTime.UtcNow,
+                        IsRead = false,
+                    };
+
+                    _context.ChatMessages.Add(message);
+
+                    // Update chat's UpdatedDate
+                    newChat.UpdatedDate = DateTime.UtcNow;
+                    _context.Chats.Update(newChat);
+
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+
+            return Ok(new CreateChatRespDTO { Success = true, ChatId = newChatId });
         }
 
         [HttpGet("list")]

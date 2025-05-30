@@ -10,5 +10,12 @@
             "username": "admin",
             "password": "zeRdojD7"
         }
-    ]
+    ],
+
+    "[csharp]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "csharpier.csharpier-vscode"
+    },
 }

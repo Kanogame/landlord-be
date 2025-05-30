@@ -18,6 +18,27 @@ public class PropertyController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("get_search_attributes")]
+    public async Task<ActionResult<IEnumerable<PropertySearchAttributeDTO>>> GetSearchAttributes()
+    {
+        var searchableAttributes = await _context
+            .Attributes.Where(a => a.IsSearchable)
+            .GroupBy(a => new { a.AttributeName, a.AttributeType })
+            .Select(g => new PropertySearchAttributeDTO
+            {
+                AttributeName = g.Key.AttributeName,
+                AttributeType = g.Key.AttributeType,
+                PossibleValues =
+                    g.Key.AttributeType == PropertyAttributeType.Text
+                        ? g.Select(a => a.AttributeValue).Distinct().ToList()
+                        : new List<string>(),
+            })
+            .OrderBy(a => a.AttributeName)
+            .ToListAsync();
+
+        return Ok(searchableAttributes);
+    }
+
     [HttpPost("get_properties_by_user_id")]
     public async Task<ActionResult<IEnumerable<Property>>> GetPropertiesByUserId(
         PropertyGetByUserDTO req

@@ -108,6 +108,7 @@ namespace landlord_be.Models
     {
         public DTOProperty(Property prop, string? username, string? profileLink)
         {
+            Id = prop.Id;
             OwnerId = prop.OwnerId;
             OfferTypeId = prop.OfferTypeId;
             PropertyTypeId = prop.PropertyTypeId;
@@ -125,6 +126,8 @@ namespace landlord_be.Models
             Username = username != null ? username : "";
             ProfileLink = profileLink != null ? profileLink : "not_found";
         }
+
+        public int Id { get; set; }
 
         public int OwnerId { get; set; }
         public OfferType OfferTypeId { get; set; }
