@@ -2,6 +2,7 @@ using System.Security.Claims;
 using landlord_be.Data;
 using landlord_be.Models;
 using landlord_be.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -10,6 +11,7 @@ namespace landlord_be.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PropertyController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
@@ -52,6 +54,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpGet("get_search_attributes")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<PropertySearchAttributeDTO>>> GetSearchAttributes()
     {
         var searchableAttributes = await _context
@@ -73,6 +76,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_by_user_id")]
+    [AllowAnonymous]
     public async Task<ActionResult<IEnumerable<PropertyGetSearchRespDTO>>> GetPropertiesByUserId(
         PropertyGetByUserDTO req
     )
@@ -120,6 +124,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_property_by_id")]
+    [AllowAnonymous]
     public async Task<ActionResult<DTOPropertyWithType>> GetPropertyById(PropertyGetByIdDTO req)
     {
         bool propertyExists = await _context.Properties.AnyAsync(p => p.Id == req.PropertyId);
@@ -157,6 +162,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost("get_properties_search")]
+    [AllowAnonymous]
     public async Task<ActionResult<PropertyGetSearchRespDTO>> GetPropertiesSearch(
         PropertyGetSearchReqDTO req
     )
@@ -263,5 +269,182 @@ public class PropertyController : ControllerBase
             .ToList();
 
         return Ok(new PropertyGetSearchRespDTO { Count = totalCount, Properties = items });
+    }
+
+    [HttpPost("create")]
+    public async Task<ActionResult<DTOPropertyWithType>> CreateProperty(CreatePropertyDTO req)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
+        {
+            return Unauthorized();
+        }
+
+        // Validate address exists
+        var addressExists = await _context.Addresses.AnyAsync(a => a.Id == req.AddressId);
+        if (!addressExists)
+        {
+            return BadRequest(new BadRequestMessage($"Address with id {req.AddressId} not found"));
+        }
+
+        var property = new Property
+        {
+            OwnerId = currentUserId.Value,
+            OfferTypeId = req.OfferTypeId,
+            PropertyTypeId = req.PropertyTypeId,
+            Name = req.Name,
+            Desc = req.Desc ?? "",
+            AddressId = req.AddressId,
+            Area = req.Area,
+            Price = req.Price,
+            Currency = req.Currency,
+            Period = req.Period,
+            Status = PropertyStatus.Draft,
+        };
+
+        _context.Properties.Add(property);
+        await _context.SaveChangesAsync();
+
+        // Add property attributes if provided
+        if (req.PropertyAttributes != null && req.PropertyAttributes.Any())
+        {
+            var attributes = req
+                .PropertyAttributes.Select(attr => new PropertyAttribute
+                {
+                    PropertyId = property.Id,
+                    Name = attr.Name,
+                    Value = attr.Value,
+                    AttributeType = attr.AttributeType,
+                    IsSearchable = attr.IsSearchable,
+                })
+                .ToList();
+
+            _context.Attributes.AddRange(attributes);
+            await _context.SaveChangesAsync();
+        }
+
+        // Reload property with all related data
+        var createdProperty = await _context
+            .Properties.Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == property.Id);
+
+        var dtoProperty = new DTOPropertyWithType(
+            createdProperty,
+            createdProperty.User?.Personal?.FirstName,
+            createdProperty.User?.GetProfileLink(),
+            false // Owner's own property, not bookmarked
+        );
+
+        return Ok(dtoProperty);
+    }
+
+    [HttpPut("update/{id}")]
+    public async Task<ActionResult<DTOPropertyWithType>> UpdateProperty(
+        int id,
+        UpdatePropertyDTO req
+    )
+    {
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
+        {
+            return Unauthorized();
+        }
+
+        var property = await _context
+            .Properties.Include(p => p.PropertyAttributes)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (property == null)
+        {
+            return NotFound(new BadRequestMessage($"Property with id {id} not found"));
+        }
+
+        // Check if user owns the property
+        if (property.OwnerId != currentUserId.Value)
+        {
+            return Forbid("You can only update your own properties");
+        }
+
+        // Validate address exists if being updated
+        if (req.AddressId.HasValue)
+        {
+            var addressExists = await _context.Addresses.AnyAsync(a => a.Id == req.AddressId.Value);
+            if (!addressExists)
+            {
+                return BadRequest(
+                    new BadRequestMessage($"Address with id {req.AddressId} not found")
+                );
+            }
+            property.AddressId = req.AddressId.Value;
+        }
+
+        // Update property fields
+        if (req.OfferTypeId.HasValue)
+            property.OfferTypeId = req.OfferTypeId.Value;
+        if (req.PropertyTypeId.HasValue)
+            property.PropertyTypeId = req.PropertyTypeId.Value;
+        if (!string.IsNullOrWhiteSpace(req.Name))
+            property.Name = req.Name;
+        if (req.Desc != null)
+            property.Desc = req.Desc;
+        if (req.Area.HasValue)
+            property.Area = req.Area.Value;
+        if (req.Price.HasValue)
+            property.Price = req.Price.Value;
+        if (req.Currency.HasValue)
+            property.Currency = req.Currency.Value;
+        if (req.Period.HasValue)
+            property.Period = req.Period.Value;
+        if (req.Status.HasValue)
+            property.Status = req.Status.Value;
+
+        // Update property attributes if provided
+        if (req.PropertyAttributes != null)
+        {
+            // Remove existing attributes
+            _context.Attributes.RemoveRange(property.PropertyAttributes);
+
+            // Add new attributes
+            var newAttributes = req
+                .PropertyAttributes.Select(attr => new PropertyAttribute
+                {
+                    PropertyId = property.Id,
+                    Name = attr.Name,
+                    Value = attr.Value,
+                    AttributeType = attr.AttributeType,
+                    IsSearchable = attr.IsSearchable,
+                })
+                .ToList();
+
+            _context.Attributes.AddRange(newAttributes);
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Reload property with all related data
+        var updatedProperty = await _context
+            .Properties.Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        var dtoProperty = new DTOPropertyWithType(
+            updatedProperty,
+            updatedProperty.User?.Personal?.FirstName,
+            updatedProperty.User?.GetProfileLink(),
+            false // Owner's own property, not bookmarked
+        );
+
+        return Ok(dtoProperty);
     }
 }
