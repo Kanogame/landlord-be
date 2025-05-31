@@ -19,7 +19,6 @@ namespace landlord_be.Models.DTO
     public class RemoveBookmarkRespDTO
     {
         public bool Success { get; set; }
-        public string Message { get; set; } = string.Empty;
     }
 
     public class GetBookmarksReqDTO

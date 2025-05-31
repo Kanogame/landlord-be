@@ -319,17 +319,33 @@ public class UserController : ControllerBase
 
     private string GenerateJwtToken(User user, string firstName, string email)
     {
-        var authClaims = new List<Claim>
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
+
+        // Get expiration time from configuration (default to 60 minutes if not specified)
+        var expirationMinutes = _configuration.GetValue<int>("JWT:TokenExpirationMinutes", 60);
+
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, firstName),
-            new(ClaimTypes.Email, email),
-            new(ClaimTypes.Role, "User"),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            Subject = new ClaimsIdentity(
+                new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, firstName),
+                    new Claim(ClaimTypes.Email, email),
+                    new Claim("userId", user.Id.ToString()),
+                }
+            ),
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
+            Issuer = _configuration["JWT:ValidIssuer"],
+            Audience = _configuration["JWT:ValidAudience"],
+            SigningCredentials = new SigningCredentials(
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha256Signature
+            ),
         };
 
-        var token = GetToken(authClaims);
-        var tokenHandler = new JwtSecurityTokenHandler();
+        var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 
