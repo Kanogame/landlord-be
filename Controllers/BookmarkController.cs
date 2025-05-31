@@ -100,21 +100,13 @@ namespace landlord_be.Controllers
 
             if (bookmark == null)
             {
-                return BadRequest(
-                    new RemoveBookmarkRespDTO { Success = false, Message = "Bookmark not found" }
-                );
+                return BadRequest(new RemoveBookmarkRespDTO { Success = false });
             }
 
             _context.Bookmarks.Remove(bookmark);
             await _context.SaveChangesAsync();
 
-            return Ok(
-                new RemoveBookmarkRespDTO
-                {
-                    Success = true,
-                    Message = "Bookmark removed successfully",
-                }
-            );
+            return Ok(new RemoveBookmarkRespDTO { Success = true });
         }
 
         [HttpPost("get_bookmarks")]
