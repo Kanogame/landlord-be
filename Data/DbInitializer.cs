@@ -766,6 +766,165 @@ namespace landlord_be.Data
 
             imageLinks.ForEach(i => context.ImageLinks.Add(i));
             context.SaveChanges();
+
+            // Add this after the imageLinks.ForEach(i => context.ImageLinks.Add(i)); line and before context.SaveChanges();
+
+            var calendarEntryPool = new List<(
+                string Name,
+                string Description,
+                CalendarState State,
+                int DurationDays
+            )>
+            {
+                (
+                    "Ремонт",
+                    "Проведен ремонт в квартире, были переклеены обои на кухне и заменена сантехника в ванной комнате.",
+                    CalendarState.Maintenance,
+                    7
+                ),
+                (
+                    "Генеральная уборка",
+                    "Выполнена генеральная уборка после предыдущих жильцов. Помыты все окна, почищены ковры, обработаны все поверхности дезинфицирующими средствами.",
+                    CalendarState.Maintenance,
+                    2
+                ),
+                (
+                    "Аренда семье Петровых",
+                    "Квартира сдана в аренду молодой семье с ребенком. Договор подписан на год с возможностью продления. Залог внесен в полном объеме.",
+                    CalendarState.Rented,
+                    30
+                ),
+                (
+                    "Косметический ремонт",
+                    "Проведена покраска стен в гостиной и спальне, заменены розетки и выключатели. Установлены новые плинтуса по всей квартире.",
+                    CalendarState.Maintenance,
+                    5
+                ),
+                (
+                    "Долгосрочная аренда",
+                    "Квартира сдана студенту на время обучения в университете. Договор заключен на 2 года. Арендатор очень ответственный и аккуратный.",
+                    CalendarState.Rented,
+                    60
+                ),
+                (
+                    "Замена сантехники",
+                    "Полная замена сантехники в ванной комнате и туалете. Установлена новая ванна, унитаз, раковина и смесители. Работы выполнены качественно.",
+                    CalendarState.Maintenance,
+                    4
+                ),
+                (
+                    "Краткосрочная аренда",
+                    "Квартира сдается на месяц командированному специалисту. Все коммунальные услуги включены в стоимость аренды.",
+                    CalendarState.Rented,
+                    30
+                ),
+                (
+                    "Замена окон",
+                    "Установлены новые пластиковые окна во всех комнатах. Значительно улучшилась тепло- и звукоизоляция квартиры.",
+                    CalendarState.Maintenance,
+                    3
+                ),
+                (
+                    "Подготовка к продаже",
+                    "Квартира готовится к продаже. Проведен косметический ремонт, обновлена мебель, сделана профессиональная фотосъемка для объявления.",
+                    CalendarState.Blocked,
+                    14
+                ),
+                (
+                    "Аренда молодой паре",
+                    "Сдано молодой паре без детей и домашних животных. Очень чистоплотные арендаторы, всегда вовремя платят за аренду.",
+                    CalendarState.Rented,
+                    90
+                ),
+                (
+                    "Ремонт электрики",
+                    "Полная замена электропроводки в квартире. Установлены новые автоматы в щитке, добавлены дополнительные розетки в комнатах.",
+                    CalendarState.Maintenance,
+                    6
+                ),
+                (
+                    "Бронирование",
+                    "Квартира забронирована для туристов на новогодние праздники. Предоплата получена, ожидается заселение через неделю.",
+                    CalendarState.Reserved,
+                    10
+                ),
+                (
+                    "Ремонт пола",
+                    "Замена напольного покрытия во всех комнатах. Уложен новый ламинат, установлены пороги. Квартира выглядит как новая.",
+                    CalendarState.Maintenance,
+                    8
+                ),
+                (
+                    "Семейная аренда",
+                    "Квартира сдана семье с двумя детьми школьного возраста. Родители работают в соседнем офисном центре, очень удобное расположение для них.",
+                    CalendarState.Rented,
+                    180
+                ),
+                (
+                    "Техническое обслуживание",
+                    "Проведено плановое техническое обслуживание: проверка всех систем, чистка вентиляции, профилактика бытовой техники.",
+                    CalendarState.Maintenance,
+                    1
+                ),
+            };
+
+            var calendarPeriods = new List<CalendarPeriod>();
+            var calendarRandom = new Random();
+
+            // Generate calendar entries for first 10 properties
+            for (int i = 0; i < 10; i++)
+            {
+                var currentDate = DateTime.UtcNow.AddDays(-90); // Start from 3 months ago
+                var propertyId = properties[i].Id;
+                var ownerId = properties[i].OwnerId;
+
+                // Generate 2-4 calendar entries per property
+                var entryCount = calendarRandom.Next(2, 5);
+
+                for (int j = 0; j < entryCount; j++)
+                {
+                    var entry = calendarEntryPool[calendarRandom.Next(calendarEntryPool.Count)];
+                    var startDate = currentDate.AddDays(calendarRandom.Next(0, 30));
+                    var endDate = startDate.AddDays(
+                        entry.DurationDays + calendarRandom.Next(-2, 5)
+                    );
+
+                    // For rented periods, sometimes attach a user
+                    int? attachedUserId = null;
+                    if (entry.State == CalendarState.Rented && calendarRandom.Next(0, 2) == 0)
+                    {
+                        // Attach a random user that's not the owner
+                        var availableUsers = users.Where(u => u.Id != ownerId).ToList();
+                        if (availableUsers.Any())
+                        {
+                            attachedUserId = availableUsers[
+                                calendarRandom.Next(availableUsers.Count)
+                            ].Id;
+                        }
+                    }
+
+                    calendarPeriods.Add(
+                        new CalendarPeriod
+                        {
+                            PropertyId = propertyId,
+                            StartDate = startDate,
+                            EndDate = endDate,
+                            State = entry.State,
+                            Name = entry.Name,
+                            Description = entry.Description,
+                            AttachedUserId = attachedUserId,
+                            CreatedAt = DateTime.UtcNow.AddDays(-calendarRandom.Next(1, 30)),
+                            UpdatedAt = DateTime.UtcNow.AddDays(-calendarRandom.Next(0, 10)),
+                        }
+                    );
+
+                    // Move current date forward to avoid overlaps
+                    currentDate = endDate.AddDays(calendarRandom.Next(1, 15));
+                }
+            }
+
+            calendarPeriods.ForEach(cp => context.CalendarPeriods.Add(cp));
+            context.SaveChanges();
         }
     }
 }

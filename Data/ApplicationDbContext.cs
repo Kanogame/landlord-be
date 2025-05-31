@@ -18,11 +18,14 @@ namespace landlord_be.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Personal> Personals => Set<Personal>();
         public DbSet<VerificationPending> VerificationPendings => Set<VerificationPending>();
+        public DbSet<Bookmark> Bookmarks { get; set; }
 
         // chat
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
-        public DbSet<Bookmark> Bookmarks { get; set; }
+
+        // calendar
+        public DbSet<CalendarPeriod> CalendarPeriods { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +78,30 @@ namespace landlord_be.Data
                 .Entity<Bookmark>()
                 .HasIndex(b => new { b.UserId, b.PropertyId })
                 .IsUnique();
+
+            modelBuilder
+                .Entity<CalendarPeriod>()
+                .HasOne(cp => cp.Property)
+                .WithMany()
+                .HasForeignKey(cp => cp.PropertyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder
+                .Entity<CalendarPeriod>()
+                .HasOne(cp => cp.AttachedUser)
+                .WithMany()
+                .HasForeignKey(cp => cp.AttachedUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Index for better query performance
+            modelBuilder
+                .Entity<CalendarPeriod>()
+                .HasIndex(cp => new
+                {
+                    cp.PropertyId,
+                    cp.StartDate,
+                    cp.EndDate,
+                });
         }
     }
 }
