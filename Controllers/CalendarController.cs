@@ -348,6 +348,66 @@ namespace landlord_be.Controllers
             );
         }
 
+        [HttpPost("get_user_history")]
+        [Authorize]
+        public async Task<ActionResult<GetUserHistoryRespDTO>> GetUserHistory(
+            GetUserHistoryReqDTO req
+        )
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized(new BadRequestMessage("User not authenticated"));
+            }
+
+            IQueryable<CalendarPeriod> query = _context
+                .CalendarPeriods.Where(cp =>
+                    cp.AttachedUserId == currentUserId
+                    && (cp.State == CalendarState.Rented || cp.State == CalendarState.Sold)
+                )
+                .Include(cp => cp.Property)
+                .ThenInclude(p => p.User)
+                .ThenInclude(u => u.Personal)
+                .Include(cp => cp.Property)
+                .ThenInclude(p => p.Address)
+                .Include(cp => cp.Property)
+                .ThenInclude(p => p.ImageLinks)
+                .Include(cp => cp.Property)
+                .ThenInclude(p => p.PropertyAttributes);
+
+            // Apply sorting based on calendar period creation date or property attributes
+            query = req.SortBy switch
+            {
+                PropertySortBy.PriceAsc => query.OrderBy(cp => cp.Property.Price),
+                PropertySortBy.PriceDesc => query.OrderByDescending(cp => cp.Property.Price),
+                PropertySortBy.AreaAsc => query.OrderBy(cp => cp.Property.Area),
+                PropertySortBy.AreaDesc => query.OrderByDescending(cp => cp.Property.Area),
+                PropertySortBy.CreatedAsc => query.OrderBy(cp => cp.CreatedAt),
+                PropertySortBy.CreatedDesc => query.OrderByDescending(cp => cp.CreatedAt),
+                _ => query.OrderByDescending(cp => cp.CreatedAt),
+            };
+
+            var totalCount = await query.CountAsync();
+
+            var calendarPeriods = await query
+                .Skip((req.PageNumber - 1) * req.PageSize)
+                .Take(req.PageSize)
+                .AsSplitQuery()
+                .AsNoTracking()
+                .ToListAsync();
+
+            var properties = calendarPeriods
+                .Select(cp => new DTOPropertyWithType(
+                    cp.Property,
+                    cp.Property.User?.Personal?.FirstName,
+                    cp.Property.User?.GetProfileLink(),
+                    false // Not bookmarked in this context, showing rental/purchase history
+                ))
+                .ToList();
+
+            return Ok(new GetUserHistoryRespDTO { Count = totalCount, Properties = properties });
+        }
+
         private static CalendarPeriodDTO MapToDTO(CalendarPeriod period)
         {
             return new CalendarPeriodDTO

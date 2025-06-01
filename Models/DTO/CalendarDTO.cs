@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using landlord_be.Models;
 
 namespace landlord_be.Models.DTO
@@ -36,6 +37,13 @@ namespace landlord_be.Models.DTO
     public class RemoveCalendarPeriodReqDTO
     {
         public int Id { get; set; }
+    }
+
+    public class GetUserHistoryReqDTO
+    {
+        public PropertySortBy SortBy { get; set; } = PropertySortBy.CreatedDesc;
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
     }
 
     // Response DTOs
@@ -79,5 +87,11 @@ namespace landlord_be.Models.DTO
     {
         public bool Success { get; set; }
         public string Message { get; set; } = "";
+    }
+
+    public class GetUserHistoryRespDTO
+    {
+        public int Count { get; set; }
+        public List<DTOPropertyWithType> Properties { get; set; } = new();
     }
 }

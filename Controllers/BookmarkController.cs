@@ -120,7 +120,7 @@ namespace landlord_be.Controllers
                 return Unauthorized(new BadRequestMessage("User not authenticated"));
             }
 
-            var query = _context
+            IQueryable<Bookmark> query = _context
                 .Bookmarks.Where(b => b.UserId == currentUserId)
                 .Include(b => b.Property)
                 .ThenInclude(p => p.User)
@@ -130,8 +130,19 @@ namespace landlord_be.Controllers
                 .Include(b => b.Property)
                 .ThenInclude(p => p.ImageLinks)
                 .Include(b => b.Property)
-                .ThenInclude(p => p.PropertyAttributes)
-                .OrderByDescending(b => b.CreatedAt);
+                .ThenInclude(p => p.PropertyAttributes);
+
+            // Apply sorting
+            query = req.SortBy switch
+            {
+                PropertySortBy.PriceAsc => query.OrderBy(b => b.Property.Price),
+                PropertySortBy.PriceDesc => query.OrderByDescending(b => b.Property.Price),
+                PropertySortBy.AreaAsc => query.OrderBy(b => b.Property.Area),
+                PropertySortBy.AreaDesc => query.OrderByDescending(b => b.Property.Area),
+                PropertySortBy.CreatedAsc => query.OrderBy(b => b.CreatedAt),
+                PropertySortBy.CreatedDesc => query.OrderByDescending(b => b.CreatedAt),
+                _ => query.OrderByDescending(b => b.CreatedAt),
+            };
 
             var totalCount = await query.CountAsync();
 

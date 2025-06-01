@@ -25,6 +25,7 @@ namespace landlord_be.Models.DTO
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+        public PropertySortBy? SortBy { get; set; } = PropertySortBy.CreatedDesc;
     }
 
     public class GetBookmarksRespDTO
