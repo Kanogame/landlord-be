@@ -2,6 +2,7 @@ using System.Security.Claims;
 using landlord_be.Data;
 using landlord_be.Models;
 using landlord_be.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace landlord_be.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BookmarkController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

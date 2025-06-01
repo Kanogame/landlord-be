@@ -54,6 +54,10 @@ namespace landlord_be.Models
         // status
         public PropertyStatus Status { get; set; }
 
+        // Timestamps
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         [NotMapped]
         public bool IsDisplayed
         {
@@ -125,11 +129,16 @@ namespace landlord_be.Models
             Desc = prop.Desc;
             Address = prop.Address;
             Area = prop.Area;
+            Rooms = prop.Rooms;
+            Services = prop.Services;
+            Parking = prop.Parking;
             Price = new Money(prop.Price, prop.Currency);
             ImageLinks = prop.ImageLinks;
             Rating = prop.Rating;
             Period = prop.Period;
             PropertyAttributes = prop.PropertyAttributes;
+            CreatedAt = prop.CreatedAt;
+            UpdatedAt = prop.UpdatedAt;
 
             PropertyLink = prop.GetPropertyLink();
             Username = username ?? "";
@@ -161,6 +170,10 @@ namespace landlord_be.Models
         public float Rating { get; set; }
 
         public RentPeriod Period { get; set; }
+
+        // Timestamps
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public Address? Address { get; set; }
 

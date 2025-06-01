@@ -180,18 +180,23 @@ public class PropertyController : ControllerBase
             query = query.Where(p => p.PropertyTypeId == (PropertyType)req.PropertyType.Value);
         }
 
+        // Address filters
         if (!string.IsNullOrWhiteSpace(req.City))
         {
             query = query.Where(p => p.Address!.City.ToLower().Contains(req.City.ToLower()));
         }
 
-        if (!string.IsNullOrWhiteSpace(req.District))
+        if (!string.IsNullOrWhiteSpace(req.Region))
         {
-            query = query.Where(p =>
-                p.Address!.District.ToLower().Contains(req.District.ToLower())
-            );
+            query = query.Where(p => p.Address!.Region.ToLower().Contains(req.Region.ToLower()));
         }
 
+        if (!string.IsNullOrWhiteSpace(req.Street))
+        {
+            query = query.Where(p => p.Address!.Street.ToLower().Contains(req.Street.ToLower()));
+        }
+
+        // Price filters
         if (req.PriceFrom.HasValue)
         {
             query = query.Where(p => p.Price >= req.PriceFrom.Value);
@@ -202,6 +207,7 @@ public class PropertyController : ControllerBase
             query = query.Where(p => p.Price <= req.PriceTo.Value);
         }
 
+        // Floor filters
         if (req.FloorFrom.HasValue)
         {
             query = query.Where(p => p.Address!.Floor >= req.FloorFrom.Value);
@@ -212,9 +218,33 @@ public class PropertyController : ControllerBase
             query = query.Where(p => p.Address!.Floor <= req.FloorTo.Value);
         }
 
-        if (req.Area.HasValue)
+        if (req.AreaFrom.HasValue)
         {
-            query = query.Where(p => p.Area >= req.Area.Value);
+            query = query.Where(p => p.Area >= req.AreaFrom.Value);
+        }
+
+        // Rooms filters
+        if (req.RoomsFrom.HasValue)
+        {
+            query = query.Where(p => p.Rooms >= req.RoomsFrom.Value);
+        }
+
+        // Services filter
+        if (req.Services.HasValue)
+        {
+            query = query.Where(p => p.Services == req.Services.Value);
+        }
+
+        // Parking filter
+        if (req.Parking.HasValue)
+        {
+            query = query.Where(p => p.Parking == req.Parking.Value);
+        }
+
+        // Period filter
+        if (req.Period.HasValue)
+        {
+            query = query.Where(p => p.Period == req.Period.Value);
         }
 
         // Apply attribute filters if any
@@ -235,12 +265,23 @@ public class PropertyController : ControllerBase
             }
         }
 
+        // Apply sorting
+        query = req.SortBy switch
+        {
+            PropertySortBy.PriceAsc => query.OrderBy(p => p.Price),
+            PropertySortBy.PriceDesc => query.OrderByDescending(p => p.Price),
+            PropertySortBy.AreaAsc => query.OrderBy(p => p.Area),
+            PropertySortBy.AreaDesc => query.OrderByDescending(p => p.Area),
+            PropertySortBy.CreatedAsc => query.OrderBy(p => p.CreatedAt),
+            PropertySortBy.CreatedDesc => query.OrderByDescending(p => p.CreatedAt),
+            _ => query.OrderByDescending(p => p.CreatedAt), // Default sorting
+        };
+
         // Get total count before pagination (but after all filters)
         var totalCount = await query.CountAsync();
 
         // Apply pagination and get final results with all necessary data
         var properties = await query
-            .OrderBy(p => p.Id) // Add consistent ordering for pagination
             .Skip((req.PageNumber - 1) * req.PageSize)
             .Take(req.PageSize)
             .Include(p => p.User)
@@ -280,68 +321,91 @@ public class PropertyController : ControllerBase
             return Unauthorized();
         }
 
-        // Validate address exists
-        var addressExists = await _context.Addresses.AnyAsync(a => a.Id == req.AddressId);
-        if (!addressExists)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            return BadRequest(new BadRequestMessage($"Address with id {req.AddressId} not found"));
-        }
+            // Create address first
+            var address = new Address
+            {
+                Region = req.Address.Region,
+                City = req.Address.City,
+                Street = req.Address.Street,
+                House = req.Address.House,
+                Floor = req.Address.Floor,
+            };
 
-        var property = new Property
-        {
-            OwnerId = currentUserId.Value,
-            OfferTypeId = req.OfferTypeId,
-            PropertyTypeId = req.PropertyTypeId,
-            Name = req.Name,
-            Desc = req.Desc ?? "",
-            AddressId = req.AddressId,
-            Area = req.Area,
-            Price = req.Price,
-            Currency = req.Currency,
-            Period = req.Period,
-            Status = PropertyStatus.Draft,
-        };
-
-        _context.Properties.Add(property);
-        await _context.SaveChangesAsync();
-
-        // Add property attributes if provided
-        if (req.PropertyAttributes != null && req.PropertyAttributes.Any())
-        {
-            var attributes = req
-                .PropertyAttributes.Select(attr => new PropertyAttribute
-                {
-                    PropertyId = property.Id,
-                    Name = attr.Name,
-                    Value = attr.Value,
-                    AttributeType = attr.AttributeType,
-                    IsSearchable = attr.IsSearchable,
-                })
-                .ToList();
-
-            _context.Attributes.AddRange(attributes);
+            _context.Addresses.Add(address);
             await _context.SaveChangesAsync();
+
+            // Create property with the new address ID
+            var property = new Property
+            {
+                OwnerId = currentUserId.Value,
+                OfferTypeId = req.OfferTypeId,
+                PropertyTypeId = req.PropertyTypeId,
+                Name = req.Name,
+                Desc = req.Desc ?? "",
+                AddressId = address.Id,
+                Area = req.Area,
+                Rooms = req.Rooms,
+                Services = req.Services,
+                Parking = req.Parking,
+                Price = decimal.Parse(req.Price),
+                Currency = req.Currency,
+                Period = req.Period,
+                Status = PropertyStatus.Draft,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+            };
+
+            _context.Properties.Add(property);
+            await _context.SaveChangesAsync();
+
+            // Add property attributes if provided
+            if (req.PropertyAttributes != null && req.PropertyAttributes.Any())
+            {
+                var attributes = req
+                    .PropertyAttributes.Select(attr => new PropertyAttribute
+                    {
+                        PropertyId = property.Id,
+                        Name = attr.Name,
+                        Value = attr.Value,
+                        AttributeType = attr.AttributeType,
+                        IsSearchable = attr.IsSearchable,
+                    })
+                    .ToList();
+
+                _context.Attributes.AddRange(attributes);
+                await _context.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+
+            // Reload property with all related data
+            var createdProperty = await _context
+                .Properties.Include(p => p.User)
+                .ThenInclude(u => u.Personal)
+                .Include(p => p.Address)
+                .Include(p => p.ImageLinks)
+                .Include(p => p.PropertyAttributes)
+                .AsSplitQuery()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == property.Id);
+
+            var dtoProperty = new DTOPropertyWithType(
+                createdProperty,
+                createdProperty.User?.Personal?.FirstName,
+                createdProperty.User?.GetProfileLink(),
+                false // Owner's own property, not bookmarked
+            );
+
+            return Ok(dtoProperty);
         }
-
-        // Reload property with all related data
-        var createdProperty = await _context
-            .Properties.Include(p => p.User)
-            .ThenInclude(u => u.Personal)
-            .Include(p => p.Address)
-            .Include(p => p.ImageLinks)
-            .Include(p => p.PropertyAttributes)
-            .AsSplitQuery()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == property.Id);
-
-        var dtoProperty = new DTOPropertyWithType(
-            createdProperty,
-            createdProperty.User?.Personal?.FirstName,
-            createdProperty.User?.GetProfileLink(),
-            false // Owner's own property, not bookmarked
-        );
-
-        return Ok(dtoProperty);
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     [HttpPut("update/{id}")]
@@ -403,6 +467,9 @@ public class PropertyController : ControllerBase
             property.Period = req.Period.Value;
         if (req.Status.HasValue)
             property.Status = req.Status.Value;
+
+        // Update timestamp
+        property.UpdatedAt = DateTime.UtcNow;
 
         // Update property attributes if provided
         if (req.PropertyAttributes != null)

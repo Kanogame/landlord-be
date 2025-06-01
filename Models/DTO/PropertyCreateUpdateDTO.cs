@@ -17,21 +17,51 @@ namespace landlord_be.Models.DTO
         public string? Desc { get; set; }
 
         [Required]
-        public int AddressId { get; set; }
+        public CreateAddressDTO Address { get; set; }
 
         [Required]
         [Range(1, int.MaxValue)]
         public int Area { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue)]
-        public decimal Price { get; set; }
+        public int Rooms { get; set; }
+
+        [Required]
+        public bool Services { get; set; } //ЖКХ
+
+        [Required]
+        public bool Parking { get; set; }
+
+        [Required]
+        public string Price { get; set; } = "0";
 
         public int Currency { get; set; } = 125; // Default currency
 
         public RentPeriod Period { get; set; } = RentPeriod.Month;
 
         public List<CreatePropertyAttributeDTO>? PropertyAttributes { get; set; }
+    }
+
+    public class CreateAddressDTO
+    {
+        [Required]
+        [StringLength(255)]
+        public string Region { get; set; } = "";
+
+        [Required]
+        [StringLength(255)]
+        public string City { get; set; } = "";
+
+        [Required]
+        [StringLength(255)]
+        public string Street { get; set; } = "";
+
+        [Required]
+        [StringLength(255)]
+        public string House { get; set; } = "";
+
+        [Required]
+        public int Floor { get; set; }
     }
 
     public class UpdatePropertyDTO

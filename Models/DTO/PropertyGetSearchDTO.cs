@@ -2,6 +2,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace landlord_be.Models.DTO
 {
+    public enum PropertySortBy
+    {
+        PriceAsc,
+        PriceDesc,
+        AreaAsc,
+        AreaDesc,
+        CreatedAsc,
+        CreatedDesc,
+    }
+
     public class PropertyGetSearchReqDTO
     {
         [Range(1, int.MaxValue)]
@@ -21,6 +31,10 @@ namespace landlord_be.Models.DTO
 
         public string? District { get; set; }
 
+        public string? Region { get; set; }
+
+        public string? Street { get; set; }
+
         public decimal? PriceFrom { get; set; }
 
         public decimal? PriceTo { get; set; }
@@ -29,7 +43,17 @@ namespace landlord_be.Models.DTO
 
         public int? FloorTo { get; set; }
 
-        public int? Area { get; set; }
+        public int? AreaFrom { get; set; }
+
+        public int? RoomsFrom { get; set; }
+
+        public bool? Services { get; set; }
+
+        public bool? Parking { get; set; }
+
+        public RentPeriod? Period { get; set; }
+
+        public PropertySortBy? SortBy { get; set; } = PropertySortBy.CreatedDesc;
 
         public IEnumerable<PropertyAttributeDTO> Attributes { get; set; } =
             new List<PropertyAttributeDTO>();

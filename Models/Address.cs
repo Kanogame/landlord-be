@@ -12,15 +12,19 @@ namespace landlord_be
 
         [Required]
         [StringLength(255)]
+        public string Region { get; set; } = "";
+
+        [Required]
+        [StringLength(255)]
         public string City { get; set; } = "";
 
         [Required]
         [StringLength(255)]
-        public string District { get; set; } = "";
+        public string Street { get; set; } = "";
 
         [Required]
         [StringLength(255)]
-        public string Street { get; set; } = "";
+        public string House { get; set; } = "";
 
         [Required]
         public int Floor { get; set; }
@@ -28,7 +32,7 @@ namespace landlord_be
         [NotMapped]
         public string DisplayAddress
         {
-            get { return $"{Street} г.{City}"; }
+            get { return $"г.{City}, {Street} {House}"; }
         }
 
         // relations

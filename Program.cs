@@ -59,7 +59,8 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5173") // Your frontend URL
+                .AllowAnyOrigin()
+                //.WithOrigins("http://192.168.1.10::5173") // Your frontend URL
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }
@@ -78,8 +79,6 @@ app.UseStaticFiles(
     }
 );
 
-app.UseCors("AllowSpecificOrigin");
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -87,7 +86,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         var dbInit = new DbInitializer(app.Logger);
-        dbInit.Initialize(context);
+        await dbInit.Initialize(context);
     }
     catch (Exception ex)
     {
@@ -95,6 +94,8 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred creating the DB.");
     }
 }
+
+app.UseCors("AllowSpecificOrigin");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

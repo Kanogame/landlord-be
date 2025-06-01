@@ -1,4 +1,5 @@
 using landlord_be.Models;
+using Microsoft.EntityFrameworkCore;
 
 #pragma warning disable IDE0090
 namespace landlord_be.Data
@@ -12,7 +13,7 @@ namespace landlord_be.Data
             _logger = logger;
         }
 
-        public void Initialize(ApplicationDbContext context)
+        public async Task Initialize(ApplicationDbContext context)
         {
             var rd = new Random();
 
@@ -102,7 +103,7 @@ namespace landlord_be.Data
             };
 
             personals.ForEach(p => context.Personals.Add(p));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var users = new List<User>();
 
@@ -122,119 +123,126 @@ namespace landlord_be.Data
             }
 
             users.ForEach(u => context.Users.Add(u));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var addresses = new List<Address>
             {
                 new Address
                 {
-                    City = "Москва",
-                    District = "Центральный",
-                    Street = "Тверская улица",
-                    Floor = 5,
-                },
-                new Address
-                {
                     City = "Санкт-Петербург",
-                    District = "Невский",
+                    Region = "Санкт-Петербург",
                     Street = "Невский проспект",
+                    House = "28",
                     Floor = 3,
-                },
-                new Address
-                {
-                    City = "Казань",
-                    District = "Вахитовский",
-                    Street = "Баумана улица",
-                    Floor = 7,
-                },
-                new Address
-                {
-                    City = "Екатеринбург",
-                    District = "Центральный",
-                    Street = "Ленина улица",
-                    Floor = 10,
                 },
                 new Address
                 {
                     City = "Новосибирск",
-                    District = "Центральный",
+                    Region = "Новосибирская обл",
                     Street = "Красный проспект",
+                    House = "12",
                     Floor = 4,
                 },
                 new Address
                 {
-                    City = "Нижний Новгород",
-                    District = "Центральный",
-                    Street = "Большая Покровская улица",
-                    Floor = 6,
-                },
-                new Address
-                {
-                    City = "Челябинск",
-                    District = "Центральный",
-                    Street = "Кировский проспект",
-                    Floor = 8,
-                },
-                new Address
-                {
-                    City = "Ростов-на-Дону",
-                    District = "Центральный",
-                    Street = "Садовая улица",
+                    City = "Екатеринбург",
+                    Region = "Свердловская обл",
+                    Street = "Ленина",
+                    House = "35",
                     Floor = 2,
                 },
                 new Address
                 {
-                    City = "Уфа",
-                    District = "Центральный",
-                    Street = "Ленина улица",
-                    Floor = 5,
-                },
-                new Address
-                {
-                    City = "Волгоград",
-                    District = "Центральный",
-                    Street = "Мира улица",
-                    Floor = 3,
-                },
-                new Address
-                {
-                    City = "Краснодар",
-                    District = "Центральный",
-                    Street = "Красная улица",
-                    Floor = 12,
-                },
-                new Address
-                {
-                    City = "Воронеж",
-                    District = "Центральный",
-                    Street = "Проспект Революции",
-                    Floor = 9,
-                },
-                new Address
-                {
-                    City = "Пермь",
-                    District = "Центральный",
-                    Street = "Комсомольский проспект",
+                    City = "Казань",
+                    Region = "Татарстан",
+                    Street = "Баумана",
+                    House = "45",
                     Floor = 6,
                 },
                 new Address
                 {
-                    City = "Самара",
-                    District = "Центральный",
-                    Street = "Молодогвардейская улица",
-                    Floor = 14,
+                    City = "Нижний Новгород",
+                    Region = "Нижегородская обл",
+                    Street = "Большая Покровская",
+                    House = "10",
+                    Floor = 1,
+                },
+                new Address
+                {
+                    City = "Челябинск",
+                    Region = "Челябинская обл",
+                    Street = "Кирова",
+                    House = "22",
+                    Floor = 5,
                 },
                 new Address
                 {
                     City = "Омск",
-                    District = "Центральный",
-                    Street = "Ленина улица",
+                    Region = "Омская обл",
+                    Street = "Ленина",
+                    House = "15",
+                    Floor = 3,
+                },
+                new Address
+                {
+                    City = "Ростов-на-Дону",
+                    Region = "Ростовская обл",
+                    Street = "Садовая",
+                    House = "50",
                     Floor = 7,
+                },
+                new Address
+                {
+                    City = "Уфа",
+                    Region = "Башкортостан",
+                    Street = "Ленина",
+                    House = "5",
+                    Floor = 2,
+                },
+                new Address
+                {
+                    City = "Волгоград",
+                    Region = "Волгоградская обл",
+                    Street = "Мира",
+                    House = "18",
+                    Floor = 4,
+                },
+                new Address
+                {
+                    City = "Пермь",
+                    Region = "Пермский край",
+                    Street = "Сибирская",
+                    House = "30",
+                    Floor = 6,
+                },
+                new Address
+                {
+                    City = "Тюмень",
+                    Region = "Тюменская обл",
+                    Street = "Московская",
+                    House = "8",
+                    Floor = 1,
+                },
+                new Address
+                {
+                    City = "Ижевск",
+                    Region = "Удмуртия",
+                    Street = "Кирова",
+                    House = "12",
+                    Floor = 3,
+                },
+                new Address
+                {
+                    City = "Барнаул",
+                    Region = "Алтайский край",
+                    Street = "Ленина",
+                    House = "25",
+                    Floor = 5,
                 },
             };
 
             addresses.ForEach(a => context.Addresses.Add(a));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var properties = new List<Property>
             {
@@ -243,12 +251,14 @@ namespace landlord_be.Data
                     OwnerId = users[0].Id,
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
-                    Name = "Просторная 3-комнатная квартира",
-                    Desc =
-                        " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas mattis aliquet lacus nec bibendum. Sed rutrum nunc eros, accumsan sagittis  libero gravida id. Duis purus libero, posuere quis rutrum in, bibendum  eget ex. Morbi magna nunc, accumsan in fermentum vel, sollicitudin quis  arcu. Pellentesque urna libero, euismod scelerisque sollicitudin nec,  venenatis eget lectus. Integer molestie nulla in luctus iaculis. Donec  finibus semper urna in tempus. Nam nec dui quis lectus fringilla  ullamcorper. Integer at porttitor arcu, ac dignissim lectus. Quisque maximus tempor ante, vel cursus orci euismod eu. Morbi ut nisi  ornare, tincidunt justo non, lobortis augue. Donec nisl nibh, iaculis  sit amet ultrices sit amet, tincidunt a est. Pellentesque non leo nec  ipsum auctor eleifend. ",
+                    Name = "Уютная квартира",
+                    Desc = "Квартира в центре города с современным ремонтом.",
                     AddressId = addresses[0].Id,
-                    Area = 85,
-                    Price = 75000,
+                    Area = 75,
+                    Rooms = 2,
+                    Services = true,
+                    Parking = false,
+                    Price = 50000,
                     Currency = 125,
                     Period = RentPeriod.Month,
                     Rating = 4.5f,
@@ -258,28 +268,16 @@ namespace landlord_be.Data
                 {
                     OwnerId = users[1].Id,
                     OfferTypeId = OfferType.Sell,
-                    PropertyTypeId = PropertyType.Flat,
-                    Name = "Студия у моря",
-                    Desc = "Студия с выходом на пляж",
-                    AddressId = addresses[1].Id,
-                    Area = 30,
-                    Price = 3500000,
-                    Currency = 125,
-                    Rating = 4.2f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[2].Id,
-                    OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Detached,
-                    Name = "Коттедж в лесу",
-                    Desc = "Коттедж в живописном месте",
-                    AddressId = addresses[2].Id,
+                    Name = "Семейный дом",
+                    Desc = "Просторный дом с садом и гаражом.",
+                    AddressId = addresses[1].Id,
                     Area = 200,
-                    Price = 150000,
+                    Rooms = 5,
+                    Services = true,
+                    Parking = true,
+                    Price = 12000000,
                     Currency = 125,
-                    Period = RentPeriod.Month,
                     Rating = 4.8f,
                     Status = PropertyStatus.Active,
                 },
@@ -288,112 +286,49 @@ namespace landlord_be.Data
                     OwnerId = users[2].Id,
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
-                    Name = "Квартира в новостройке",
-                    Desc = "Современная квартира с ремонтом",
-                    AddressId = addresses[3].Id,
-                    Area = 75,
-                    Price = 55000,
+                    Name = "Студия",
+                    Desc = "Современная студия в новом доме.",
+                    AddressId = addresses[2].Id,
+                    Area = 40,
+                    Rooms = 1,
+                    Services = false,
+                    Parking = false,
+                    Price = 30000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Rating = 4.3f,
+                    Rating = 4.0f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
                 {
                     OwnerId = users[3].Id,
                     OfferTypeId = OfferType.Sell,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Дача на природе",
-                    Desc = "Дача с возможностью рыбалки",
-                    AddressId = addresses[4].Id,
-                    Area = 100,
-                    Price = 2800000,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Квартира с балконом",
+                    Desc = "Квартира с балконом и видом на парк.",
+                    AddressId = addresses[3].Id,
+                    Area = 85,
+                    Rooms = 3,
+                    Services = true,
+                    Parking = true,
+                    Price = 8000000,
                     Currency = 125,
-                    Rating = 4.0f,
+                    Rating = 4.6f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
                 {
                     OwnerId = users[4].Id,
                     OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Commercial,
-                    Name = "Офисное помещение",
-                    Desc = "Помещение для бизнеса в центре",
-                    AddressId = addresses[5].Id,
-                    Area = 120,
-                    Price = 180000,
-                    Currency = 125,
-                    Period = RentPeriod.Month,
-                    Rating = 4.1f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[5].Id,
-                    OfferTypeId = OfferType.Sell,
-                    PropertyTypeId = PropertyType.Flat,
-                    Name = "Квартира с балконом",
-                    Desc = "Квартира с большим балконом",
-                    AddressId = addresses[6].Id,
-                    Area = 65,
-                    Price = 4200000,
-                    Currency = 125,
-                    Rating = 4.4f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[6].Id,
-                    OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Detached,
-                    Name = "Уютный дом",
-                    Desc = "Дом с камином и уютной атмосферой",
-                    AddressId = addresses[7].Id,
-                    Area = 90,
-                    Price = 85000,
-                    Currency = 125,
-                    Period = RentPeriod.Month,
-                    Rating = 4.6f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[7].Id,
-                    OfferTypeId = OfferType.Sell,
-                    PropertyTypeId = PropertyType.Flat,
-                    Name = "Студия в центре",
-                    Desc = "Студия в центре города",
-                    AddressId = addresses[8].Id,
-                    Area = 40,
-                    Price = 2900000,
-                    Currency = 125,
-                    Rating = 3.9f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[8].Id,
-                    OfferTypeId = OfferType.Sell,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Коттедж у озера",
-                    Desc = "Коттедж с выходом к озеру",
-                    AddressId = addresses[9].Id,
-                    Area = 180,
-                    Price = 8500000,
-                    Currency = 125,
-                    Rating = 4.9f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[9].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Commercial,
-                    Name = "Торговое помещение",
-                    Desc = "Помещение на первом этаже",
-                    AddressId = addresses[10].Id,
-                    Area = 95,
-                    Price = 120000,
+                    Name = "Дача",
+                    Desc = "Уютная дача на природе.",
+                    AddressId = addresses[4].Id,
+                    Area = 100,
+                    Rooms = 4,
+                    Services = true,
+                    Parking = true,
+                    Price = 20000,
                     Currency = 125,
                     Period = RentPeriod.Month,
                     Rating = 4.2f,
@@ -401,17 +336,177 @@ namespace landlord_be.Data
                 },
                 new Property
                 {
-                    OwnerId = users[0].Id,
+                    OwnerId = users[5].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Люкс квартира",
+                    Desc = "Элитная квартира в центре города.",
+                    AddressId = addresses[5].Id,
+                    Area = 120,
+                    Rooms = 3,
+                    Services = true,
+                    Parking = true,
+                    Price = 15000000,
+                    Currency = 125,
+                    Rating = 5.0f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[6].Id,
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
-                    Name = "Однокомнатная квартира",
-                    Desc = "Уютная квартира для молодой семьи",
-                    AddressId = addresses[11].Id,
-                    Area = 45,
+                    Name = "Квартира-студия",
+                    Desc = "Студия с современным дизайном.",
+                    AddressId = addresses[6].Id,
+                    Area = 50,
+                    Rooms = 1,
+                    Services = false,
+                    Parking = false,
                     Price = 35000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Rating = 4.1f,
+                    Rating = 4.3f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[7].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Коттедж",
+                    Desc = "Коттедж с большим участком.",
+                    AddressId = addresses[7].Id,
+                    Area = 250,
+                    Rooms = 6,
+                    Services = true,
+                    Parking = true,
+                    Price = 20000000,
+                    Currency = 125,
+                    Rating = 4.9f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[8].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Комфортная квартира",
+                    Desc = "Квартира с хорошей планировкой и ремонтом.",
+                    AddressId = addresses[8].Id,
+                    Area = 70,
+                    Rooms = 2,
+                    Services = true,
+                    Parking = true,
+                    Price = 45000,
+                    Currency = 125,
+                    Period = RentPeriod.Month,
+                    Rating = 4.4f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[9].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Квартира с террасой",
+                    Desc = "Квартира с террасой и видом на реку.",
+                    AddressId = addresses[9].Id,
+                    Area = 95,
+                    Rooms = 3,
+                    Services = true,
+                    Parking = true,
+                    Price = 9500000,
+                    Currency = 125,
+                    Rating = 4.7f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[0].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Современный дом",
+                    Desc = "Дом с современными удобствами и большим двором.",
+                    AddressId = addresses[10].Id,
+                    Area = 180,
+                    Rooms = 4,
+                    Services = true,
+                    Parking = true,
+                    Price = 60000,
+                    Currency = 125,
+                    Period = RentPeriod.Month,
+                    Rating = 4.6f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[1].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Квартира в новостройке",
+                    Desc = "Новая квартира с ремонтом в современном доме.",
+                    AddressId = addresses[11].Id,
+                    Area = 80,
+                    Rooms = 3,
+                    Services = true,
+                    Parking = true,
+                    Price = 8500000,
+                    Currency = 125,
+                    Rating = 4.8f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[2].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Flat,
+                    Name = "Квартира с видом на город",
+                    Desc = "Квартира с панорамными окнами и видом на город.",
+                    AddressId = addresses[12].Id,
+                    Area = 90,
+                    Rooms = 3,
+                    Services = true,
+                    Parking = true,
+                    Price = 70000,
+                    Currency = 125,
+                    Period = RentPeriod.Month,
+                    Rating = 4.5f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[3].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Detached,
+                    Name = "Деревянный дом",
+                    Desc = "Экологически чистый деревянный дом в лесу.",
+                    AddressId = addresses[13].Id,
+                    Area = 150,
+                    Rooms = 5,
+                    Services = true,
+                    Parking = true,
+                    Price = 11000000,
+                    Currency = 125,
+                    Rating = 4.9f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[0].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Commercial,
+                    Name = "Офис в центре города",
+                    Desc = "Современный офис с открытой планировкой и всеми удобствами.",
+                    AddressId = addresses[0].Id,
+                    Area = 120,
+                    Rooms = 1,
+                    Services = true,
+                    Parking = true,
+                    Price = 80000,
+                    Currency = 125,
+                    Period = RentPeriod.Month,
+                    Rating = 4.5f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -419,214 +514,77 @@ namespace landlord_be.Data
                     OwnerId = users[1].Id,
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Commercial,
-                    Name = "Складское помещение",
-                    Desc = "Помещение для хранения товаров",
-                    AddressId = addresses[12].Id,
-                    Area = 300,
+                    Name = "Торговое помещение",
+                    Desc = "Помещение для магазина в проходимом месте.",
+                    AddressId = addresses[1].Id,
+                    Area = 150,
+                    Rooms = 1,
+                    Services = true,
+                    Parking = true,
                     Price = 15000000,
                     Currency = 125,
-                    Rating = 3.8f,
+                    Rating = 4.7f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[2].Id,
+                    OfferTypeId = OfferType.Rent,
+                    PropertyTypeId = PropertyType.Commercial,
+                    Name = "Коворкинг",
+                    Desc = "Просторный коворкинг с удобными рабочими местами.",
+                    AddressId = addresses[2].Id,
+                    Area = 200,
+                    Rooms = 1,
+                    Services = true,
+                    Parking = true,
+                    Price = 60000,
+                    Currency = 125,
+                    Period = RentPeriod.Month,
+                    Rating = 4.6f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
                 {
                     OwnerId = users[3].Id,
+                    OfferTypeId = OfferType.Sell,
+                    PropertyTypeId = PropertyType.Commercial,
+                    Name = "Складское помещение",
+                    Desc = "Склад с удобным доступом и охраной.",
+                    AddressId = addresses[3].Id,
+                    Area = 300,
+                    Rooms = 0,
+                    Services = true,
+                    Parking = true,
+                    Price = 5000000,
+                    Currency = 125,
+                    Rating = 4.4f,
+                    Status = PropertyStatus.Active,
+                },
+                new Property
+                {
+                    OwnerId = users[4].Id,
                     OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Flat,
-                    Name = "Пентхаус",
-                    Desc = "Роскошный пентхаус с панорамным видом",
-                    AddressId = addresses[13].Id,
-                    Area = 150,
-                    Price = 250000,
+                    PropertyTypeId = PropertyType.Commercial,
+                    Name = "Ресторан",
+                    Desc = "Ресторан с полностью оборудованной кухней и залом.",
+                    AddressId = addresses[4].Id,
+                    Area = 250,
+                    Rooms = 2,
+                    Services = true,
+                    Parking = true,
+                    Price = 120000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Rating = 5.0f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
-                    Status = PropertyStatus.Active,
-                },
-                new Property
-                {
-                    OwnerId = users[4].Id,
-                    OfferTypeId = OfferType.Rent,
-                    PropertyTypeId = PropertyType.Detached,
-                    Name = "Загородный дом",
-                    Desc = "Дом для отдыха на выходные",
-                    AddressId = addresses[14].Id,
-                    Area = 110,
-                    Price = 15000,
-                    Currency = 125,
-                    Period = RentPeriod.Day,
-                    Rating = 4.3f,
+                    Rating = 4.8f,
                     Status = PropertyStatus.Active,
                 },
             };
 
             properties.ForEach(p => context.Properties.Add(p));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
+
+            var savedProperties = await context.Properties.ToListAsync();
 
             // Define attribute pool with 15 unique attribute types
             var attributePool = new List<(
@@ -715,10 +673,10 @@ namespace landlord_be.Data
             var random = new Random();
 
             // Generate attributes for each property
-            for (int i = 0; i < 14; i++)
+            for (int i = 0; i < savedProperties.Count; i++)
             {
-                // Randomly select 10-15 attributes for each property
-                var attributeCount = random.Next(10, 16);
+                // Randomly select 5-9 attributes for each property
+                var attributeCount = random.Next(5, 10);
                 var selectedAttributes = attributePool
                     .OrderBy(x => random.Next())
                     .Take(attributeCount);
@@ -730,7 +688,7 @@ namespace landlord_be.Data
                     propertyAttributes.Add(
                         new PropertyAttribute
                         {
-                            PropertyId = properties[i].Id,
+                            PropertyId = savedProperties[i].Id,
                             Name = name,
                             Value = value,
                             AttributeType = type,
@@ -741,21 +699,21 @@ namespace landlord_be.Data
             }
 
             propertyAttributes.ForEach(a => context.Attributes.Add(a));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var imageLinks = new List<ImageLink>();
 
-            for (int i = 0; i < 14; i++)
+            for (int i = 0; i < savedProperties.Count; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {
                     imageLinks.Add(
                         new ImageLink
                         {
-                            PropertyId = properties[i].Id,
+                            PropertyId = savedProperties[i].Id,
                             Link =
-                                "http://localhost:5249/public/images/"
-                                + ((i + 1) % 9)
+                                "http://192.168.1.10:5249/public/images/"
+                                + ((i + 1) % 8)
                                 + "_"
                                 + (j + 1)
                                 + ".webp",
@@ -765,7 +723,7 @@ namespace landlord_be.Data
             }
 
             imageLinks.ForEach(i => context.ImageLinks.Add(i));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             // Add this after the imageLinks.ForEach(i => context.ImageLinks.Add(i)); line and before context.SaveChanges();
 
@@ -872,11 +830,11 @@ namespace landlord_be.Data
             var calendarRandom = new Random();
 
             // Generate calendar entries for first 10 properties
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < savedProperties.Count; i++)
             {
                 var currentDate = DateTime.UtcNow.AddDays(-90); // Start from 3 months ago
-                var propertyId = properties[i].Id;
-                var ownerId = properties[i].OwnerId;
+                var propertyId = savedProperties[i].Id;
+                var ownerId = savedProperties[i].OwnerId;
 
                 // Generate 2-4 calendar entries per property
                 var entryCount = calendarRandom.Next(2, 5);
@@ -924,7 +882,7 @@ namespace landlord_be.Data
             }
 
             calendarPeriods.ForEach(cp => context.CalendarPeriods.Add(cp));
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }
