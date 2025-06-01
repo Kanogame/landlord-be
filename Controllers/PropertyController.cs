@@ -514,4 +514,63 @@ public class PropertyController : ControllerBase
 
         return Ok(dtoProperty);
     }
+
+    [HttpPost("get_own_properties")]
+    public async Task<ActionResult<GetOwnPropertiesRespDTO>> GetOwnProperties(
+        GetOwnPropertiesReqDTO req
+    )
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+        {
+            return Unauthorized(new BadRequestMessage("User not authenticated"));
+        }
+
+        IQueryable<Property> query = _context
+            .Properties.Where(p => p.OwnerId == currentUserId)
+            .Include(p => p.User)
+            .ThenInclude(u => u.Personal)
+            .Include(p => p.Address)
+            .Include(p => p.ImageLinks)
+            .Include(p => p.PropertyAttributes);
+
+        // Filter by status if provided
+        if (req.Status.HasValue)
+        {
+            query = query.Where(p => p.Status == req.Status.Value);
+        }
+
+        // Apply sorting
+        query = req.SortBy switch
+        {
+            PropertySortBy.PriceAsc => query.OrderBy(p => p.Price),
+            PropertySortBy.PriceDesc => query.OrderByDescending(p => p.Price),
+            PropertySortBy.AreaAsc => query.OrderBy(p => p.Area),
+            PropertySortBy.AreaDesc => query.OrderByDescending(p => p.Area),
+            PropertySortBy.CreatedAsc => query.OrderBy(p => p.CreatedAt),
+            PropertySortBy.CreatedDesc => query.OrderByDescending(p => p.CreatedAt),
+            _ => query.OrderByDescending(p => p.CreatedAt),
+        };
+
+        var totalCount = await query.CountAsync();
+
+        var properties = await query
+            .Skip((req.PageNumber - 1) * req.PageSize)
+            .Take(req.PageSize)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToListAsync();
+
+        var items = properties
+            .Select(p => new DTOPropertyWithTypeAndStatus(
+                p,
+                p.User?.Personal?.FirstName,
+                p.User?.GetProfileLink(),
+                false, // Owner's own property, not bookmarked
+                p.Status
+            ))
+            .ToList();
+
+        return Ok(new GetOwnPropertiesRespDTO { Count = totalCount, Properties = items });
+    }
 }
