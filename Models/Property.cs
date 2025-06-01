@@ -80,6 +80,15 @@ namespace landlord_be.Models
         [Required]
         public int Area { get; set; }
 
+        [Required]
+        public int Rooms { get; set; }
+
+        [Required]
+        public bool Services { get; set; } //ЖКХ
+
+        [Required]
+        public bool Parking { get; set; }
+
         // Finance
         [Required]
         [Column(TypeName = "decimal(18,2)")]
@@ -88,7 +97,7 @@ namespace landlord_be.Models
         public int Currency { get; set; }
 
         // Rent only
-        public float Raiting { get; set; }
+        public float Rating { get; set; }
 
         public RentPeriod Period { get; set; }
 
@@ -118,7 +127,7 @@ namespace landlord_be.Models
             Area = prop.Area;
             Price = new Money(prop.Price, prop.Currency);
             ImageLinks = prop.ImageLinks;
-            Raiting = prop.Raiting;
+            Rating = prop.Rating;
             Period = prop.Period;
             PropertyAttributes = prop.PropertyAttributes;
 
@@ -139,11 +148,17 @@ namespace landlord_be.Models
         public string Desc { get; set; } = "";
         public int Area { get; set; }
 
+        public int Rooms { get; set; }
+
+        public bool Services { get; set; }
+
+        public bool Parking { get; set; }
+
         // Finance
         public Money Price { get; set; }
 
         // Rent only
-        public float Raiting { get; set; }
+        public float Rating { get; set; }
 
         public RentPeriod Period { get; set; }
 

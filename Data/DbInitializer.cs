@@ -131,105 +131,105 @@ namespace landlord_be.Data
                     City = "Москва",
                     District = "Центральный",
                     Street = "Тверская улица",
-                    Story = 5,
+                    Floor = 5,
                 },
                 new Address
                 {
                     City = "Санкт-Петербург",
                     District = "Невский",
                     Street = "Невский проспект",
-                    Story = 3,
+                    Floor = 3,
                 },
                 new Address
                 {
                     City = "Казань",
                     District = "Вахитовский",
                     Street = "Баумана улица",
-                    Story = 7,
+                    Floor = 7,
                 },
                 new Address
                 {
                     City = "Екатеринбург",
                     District = "Центральный",
                     Street = "Ленина улица",
-                    Story = 10,
+                    Floor = 10,
                 },
                 new Address
                 {
                     City = "Новосибирск",
                     District = "Центральный",
                     Street = "Красный проспект",
-                    Story = 4,
+                    Floor = 4,
                 },
                 new Address
                 {
                     City = "Нижний Новгород",
                     District = "Центральный",
                     Street = "Большая Покровская улица",
-                    Story = 6,
+                    Floor = 6,
                 },
                 new Address
                 {
                     City = "Челябинск",
                     District = "Центральный",
                     Street = "Кировский проспект",
-                    Story = 8,
+                    Floor = 8,
                 },
                 new Address
                 {
                     City = "Ростов-на-Дону",
                     District = "Центральный",
                     Street = "Садовая улица",
-                    Story = 2,
+                    Floor = 2,
                 },
                 new Address
                 {
                     City = "Уфа",
                     District = "Центральный",
                     Street = "Ленина улица",
-                    Story = 5,
+                    Floor = 5,
                 },
                 new Address
                 {
                     City = "Волгоград",
                     District = "Центральный",
                     Street = "Мира улица",
-                    Story = 3,
+                    Floor = 3,
                 },
                 new Address
                 {
                     City = "Краснодар",
                     District = "Центральный",
                     Street = "Красная улица",
-                    Story = 12,
+                    Floor = 12,
                 },
                 new Address
                 {
                     City = "Воронеж",
                     District = "Центральный",
                     Street = "Проспект Революции",
-                    Story = 9,
+                    Floor = 9,
                 },
                 new Address
                 {
                     City = "Пермь",
                     District = "Центральный",
                     Street = "Комсомольский проспект",
-                    Story = 6,
+                    Floor = 6,
                 },
                 new Address
                 {
                     City = "Самара",
                     District = "Центральный",
                     Street = "Молодогвардейская улица",
-                    Story = 14,
+                    Floor = 14,
                 },
                 new Address
                 {
                     City = "Омск",
                     District = "Центральный",
                     Street = "Ленина улица",
-                    Story = 7,
+                    Floor = 7,
                 },
             };
 
@@ -251,7 +251,7 @@ namespace landlord_be.Data
                     Price = 75000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.5f,
+                    Rating = 4.5f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -265,7 +265,7 @@ namespace landlord_be.Data
                     Area = 30,
                     Price = 3500000,
                     Currency = 125,
-                    Raiting = 4.2f,
+                    Rating = 4.2f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -280,7 +280,7 @@ namespace landlord_be.Data
                     Price = 150000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.8f,
+                    Rating = 4.8f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -295,7 +295,7 @@ namespace landlord_be.Data
                     Price = 55000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -309,7 +309,7 @@ namespace landlord_be.Data
                     Area = 100,
                     Price = 2800000,
                     Currency = 125,
-                    Raiting = 4.0f,
+                    Rating = 4.0f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -324,7 +324,7 @@ namespace landlord_be.Data
                     Price = 180000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.1f,
+                    Rating = 4.1f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -338,7 +338,7 @@ namespace landlord_be.Data
                     Area = 65,
                     Price = 4200000,
                     Currency = 125,
-                    Raiting = 4.4f,
+                    Rating = 4.4f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -353,7 +353,7 @@ namespace landlord_be.Data
                     Price = 85000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.6f,
+                    Rating = 4.6f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -367,7 +367,7 @@ namespace landlord_be.Data
                     Area = 40,
                     Price = 2900000,
                     Currency = 125,
-                    Raiting = 3.9f,
+                    Rating = 3.9f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -381,7 +381,7 @@ namespace landlord_be.Data
                     Area = 180,
                     Price = 8500000,
                     Currency = 125,
-                    Raiting = 4.9f,
+                    Rating = 4.9f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -396,7 +396,7 @@ namespace landlord_be.Data
                     Price = 120000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.2f,
+                    Rating = 4.2f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -411,7 +411,7 @@ namespace landlord_be.Data
                     Price = 35000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 4.1f,
+                    Rating = 4.1f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -425,7 +425,7 @@ namespace landlord_be.Data
                     Area = 300,
                     Price = 15000000,
                     Currency = 125,
-                    Raiting = 3.8f,
+                    Rating = 3.8f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -440,7 +440,7 @@ namespace landlord_be.Data
                     Price = 250000,
                     Currency = 125,
                     Period = RentPeriod.Month,
-                    Raiting = 5.0f,
+                    Rating = 5.0f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -455,7 +455,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -470,7 +470,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -485,7 +485,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -500,7 +500,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -515,7 +515,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -530,7 +530,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -545,7 +545,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -560,7 +560,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -575,7 +575,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -590,7 +590,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -605,7 +605,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
                 new Property
@@ -620,7 +620,7 @@ namespace landlord_be.Data
                     Price = 15000,
                     Currency = 125,
                     Period = RentPeriod.Day,
-                    Raiting = 4.3f,
+                    Rating = 4.3f,
                     Status = PropertyStatus.Active,
                 },
             };

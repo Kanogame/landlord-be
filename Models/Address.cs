@@ -23,7 +23,7 @@ namespace landlord_be
         public string Street { get; set; } = "";
 
         [Required]
-        public int Story { get; set; }
+        public int Floor { get; set; }
 
         [NotMapped]
         public string DisplayAddress

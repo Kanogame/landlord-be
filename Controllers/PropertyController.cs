@@ -204,12 +204,12 @@ public class PropertyController : ControllerBase
 
         if (req.FloorFrom.HasValue)
         {
-            query = query.Where(p => p.Address!.Story >= req.FloorFrom.Value);
+            query = query.Where(p => p.Address!.Floor >= req.FloorFrom.Value);
         }
 
         if (req.FloorTo.HasValue)
         {
-            query = query.Where(p => p.Address!.Story <= req.FloorTo.Value);
+            query = query.Where(p => p.Address!.Floor <= req.FloorTo.Value);
         }
 
         if (req.Area.HasValue)
