@@ -31,7 +31,7 @@ namespace landlord_be.Models
 
         public string GetProfileLink()
         {
-            return $"/profile/{Id}";
+            return $"/user/{Id}";
         }
     }
 }

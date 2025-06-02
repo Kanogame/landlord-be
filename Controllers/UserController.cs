@@ -26,6 +26,63 @@ public class UserController : ControllerBase
         rd = new Random();
     }
 
+    [HttpPost("get_user_info")]
+    public async Task<ActionResult<GetUserInfoRespDTO>> GetUserInfo(GetUserInfoReqDTO req)
+    {
+        var user = await _context
+            .Users.Include(u => u.Personal)
+            .FirstOrDefaultAsync(u => u.Id == req.UserId);
+
+        if (user == null)
+        {
+            return BadRequest(new BadRequestMessage($"User with id {req.UserId} not found"));
+        }
+
+        // Get property counts by status
+        var activePropertiesCount = await _context.Properties.CountAsync(p =>
+            p.OwnerId == req.UserId && p.Status == PropertyStatus.Active
+        );
+
+        var rentedSoldRentEndingCount = await _context.Properties.CountAsync(p =>
+            p.OwnerId == req.UserId
+            && (
+                p.Status == PropertyStatus.Rented
+                || p.Status == PropertyStatus.Sold
+                || p.Status == PropertyStatus.RentEnding
+            )
+        );
+
+        // Calculate time since registration
+        var timeSinceRegistration = DateTime.UtcNow - user.RegisterDate;
+        var experienceYears = (int)(timeSinceRegistration.TotalDays / 365.25);
+        var experienceMonths = (int)((timeSinceRegistration.TotalDays % 365.25) / 30.44);
+
+        string experience;
+        if (experienceYears > 0)
+        {
+            experience =
+                experienceMonths > 0
+                    ? $"{experienceYears} лет {experienceMonths} месяцев"
+                    : $"{experienceYears} лет";
+        }
+        else
+        {
+            experience = experienceMonths > 0 ? $"{experienceMonths} месяцев" : "Менее месяца";
+        }
+
+        var fullName = $"{user.Personal?.FirstName} {user.Personal?.LastName}".Trim();
+
+        return Ok(
+            new GetUserInfoRespDTO
+            {
+                FullName = fullName,
+                ActivePropertiesCount = activePropertiesCount,
+                RentedSoldRentEndingCount = rentedSoldRentEndingCount,
+                Experience = experience,
+            }
+        );
+    }
+
     // REGISTRATION ENDPOINTS
     [HttpPost("register/send-code")]
     public async Task<ActionResult<VerificationNumberRespDTO>> RegisterSendCode(

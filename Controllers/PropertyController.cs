@@ -93,9 +93,24 @@ public class PropertyController : ControllerBase
 
         query = query.Where(p => p.OwnerId == req.UserId);
 
+        // Apply sorting
+        query = req.SortBy switch
+        {
+            PropertySortBy.PriceAsc => query.OrderBy(p => p.Price),
+            PropertySortBy.PriceDesc => query.OrderByDescending(p => p.Price),
+            PropertySortBy.AreaAsc => query.OrderBy(p => p.Area),
+            PropertySortBy.AreaDesc => query.OrderByDescending(p => p.Area),
+            PropertySortBy.CreatedAsc => query.OrderBy(p => p.CreatedAt),
+            PropertySortBy.CreatedDesc => query.OrderByDescending(p => p.CreatedAt),
+            _ => query.OrderByDescending(p => p.CreatedAt),
+        };
+
         var totalCount = await query.CountAsync();
-        var properties = await _context
-            .Properties.Include(p => p.User)
+
+        var properties = await query
+            .Skip((req.PageNumber - 1) * req.PageSize)
+            .Take(req.PageSize)
+            .Include(p => p.User)
             .ThenInclude(u => u.Personal)
             .Include(p => p.Address)
             .Include(p => p.ImageLinks)
@@ -353,7 +368,7 @@ public class PropertyController : ControllerBase
                 Price = decimal.Parse(req.Price),
                 Currency = req.Currency,
                 Period = req.Period,
-                Status = PropertyStatus.Draft,
+                Status = PropertyStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };

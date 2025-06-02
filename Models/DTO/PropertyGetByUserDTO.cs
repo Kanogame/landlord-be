@@ -14,5 +14,6 @@ namespace landlord_be.Models.DTO
 
         [Required(ErrorMessage = "ID is required")]
         public int UserId { get; set; }
+        public PropertySortBy SortBy { get; set; } = PropertySortBy.CreatedDesc;
     }
 }
