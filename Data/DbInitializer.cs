@@ -711,12 +711,7 @@ namespace landlord_be.Data
                         new ImageLink
                         {
                             PropertyId = savedProperties[i].Id,
-                            Link =
-                                "http://192.168.1.10:5249/public/images/"
-                                + ((i + 1) % 8)
-                                + "_"
-                                + (j + 1)
-                                + ".webp",
+                            Link = "public/images/" + ((i + 1) % 8) + "_" + (j + 1) + ".webp",
                         }
                     );
                 }
