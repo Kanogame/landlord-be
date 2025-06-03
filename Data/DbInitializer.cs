@@ -22,85 +22,102 @@ namespace landlord_be.Data
             if (context.Users.Any())
             {
                 return;
-            }
-
-            DateTime time = DateTime.Now.ToUniversalTime();
-
-            var personals = new List<Personal>
+        }
+        DateTime time = DateTime.Now.ToUniversalTime();
+        var personals = new List<Personal>
+        {
+            new Personal
             {
-                new Personal
-                {
-                    FirstName = "Иван",
-                    LastName = "Иванов",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Петр",
-                    LastName = "Петров",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Сергей",
-                    LastName = "Сергеев",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Алексей",
-                    LastName = "Алексеев",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Дмитрий",
-                    LastName = "Дмитриев",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Анна",
-                    LastName = "Антонова",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Мария",
-                    LastName = "Маркова",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Елена",
-                    LastName = "Еленина",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Олег",
-                    LastName = "Олегов",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Т1атьяна",
-                    LastName = "Татьянова",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Т2атьяна",
-                    LastName = "Татьянова",
-                    Patronym = "Иванович",
-                },
-                new Personal
-                {
-                    FirstName = "Т3атьяна",
-                    LastName = "Татьянова",
-                    Patronym = "Иванович",
-                },
-            };
+                FirstName = "Иван",
+                LastName = "Иванов",
+                Patronym = "Иванович"
+            },
+            new Personal
+            {
+                FirstName = "Александр",
+                LastName = "Петров",
+                Patronym = "Сергеевич"
+            },
+            new Personal
+            {
+                FirstName = "Мария",
+                LastName = "Соколова",
+                Patronym = "Алексеевна"
+            },
+            new Personal
+            {
+                FirstName = "Екатерина",
+                LastName = "Николаева",
+                Patronym = "Викторовна"
+            },
+            new Personal
+            {
+                FirstName = "Дмитрий",
+                LastName = "Кузнецов",
+                Patronym = "Петрович"
+            },
+            new Personal
+            {
+                FirstName = "Ольга",
+                LastName = "Морозова",
+                Patronym = "Андреевна"
+            },
+            new Personal
+            {
+                FirstName = "Сергей",
+                LastName = "Сидоров",
+                Patronym = "Николаевич"
+            },
+            new Personal
+            {
+                FirstName = "Наталья",
+                LastName = "Лебедева",
+                Patronym = "Ивановна"
+            },
+            new Personal
+            {
+                FirstName = "Андрей",
+                LastName = "Смирнов",
+                Patronym = "Юрьевич"
+            },
+            new Personal
+            {
+                FirstName = "Елена",
+                LastName = "Фёдорова",
+                Patronym = "Григорьевна"
+            },
+            new Personal
+            {
+                FirstName = "Владимир",
+                LastName = "Михайлов",
+                Patronym = "Васильевич"
+            },
+            new Personal
+            {
+                FirstName = "Татьяна",
+                LastName = "Григорьева",
+                Patronym = "Анатольевна"
+            },
+            new Personal
+            {
+                FirstName = "Максим",
+                LastName = "Савельев",
+                Patronym = "Дмитриевич"
+            },
+            new Personal
+            {
+                FirstName = "Юлия",
+                LastName = "Борисова",
+                Patronym = "Олеговна"
+            },
+            new Personal
+            {
+                FirstName = "Роман",
+                LastName = "Юрьев",
+                Patronym = "Михайлович"
+            }
+        };
+
 
             personals.ForEach(p => context.Personals.Add(p));
             await context.SaveChangesAsync();
@@ -126,123 +143,132 @@ namespace landlord_be.Data
             await context.SaveChangesAsync();
 
             var addresses = new List<Address>
+        {
+            new Address
             {
-                new Address
-                {
-                    City = "Санкт-Петербург",
-                    Region = "Санкт-Петербург",
-                    Street = "Невский проспект",
-                    House = "28",
-                    Floor = 3,
-                },
-                new Address
-                {
-                    City = "Новосибирск",
-                    Region = "Новосибирская обл",
-                    Street = "Красный проспект",
-                    House = "12",
-                    Floor = 4,
-                },
-                new Address
-                {
-                    City = "Екатеринбург",
-                    Region = "Свердловская обл",
-                    Street = "Ленина",
-                    House = "35",
-                    Floor = 2,
-                },
-                new Address
-                {
-                    City = "Казань",
-                    Region = "Татарстан",
-                    Street = "Баумана",
-                    House = "45",
-                    Floor = 6,
-                },
-                new Address
-                {
-                    City = "Нижний Новгород",
-                    Region = "Нижегородская обл",
-                    Street = "Большая Покровская",
-                    House = "10",
-                    Floor = 1,
-                },
-                new Address
-                {
-                    City = "Челябинск",
-                    Region = "Челябинская обл",
-                    Street = "Кирова",
-                    House = "22",
-                    Floor = 5,
-                },
-                new Address
-                {
-                    City = "Омск",
-                    Region = "Омская обл",
-                    Street = "Ленина",
-                    House = "15",
-                    Floor = 3,
-                },
-                new Address
-                {
-                    City = "Ростов-на-Дону",
-                    Region = "Ростовская обл",
-                    Street = "Садовая",
-                    House = "50",
-                    Floor = 7,
-                },
-                new Address
-                {
-                    City = "Уфа",
-                    Region = "Башкортостан",
-                    Street = "Ленина",
-                    House = "5",
-                    Floor = 2,
-                },
-                new Address
-                {
-                    City = "Волгоград",
-                    Region = "Волгоградская обл",
-                    Street = "Мира",
-                    House = "18",
-                    Floor = 4,
-                },
-                new Address
-                {
-                    City = "Пермь",
-                    Region = "Пермский край",
-                    Street = "Сибирская",
-                    House = "30",
-                    Floor = 6,
-                },
-                new Address
-                {
-                    City = "Тюмень",
-                    Region = "Тюменская обл",
-                    Street = "Московская",
-                    House = "8",
-                    Floor = 1,
-                },
-                new Address
-                {
-                    City = "Ижевск",
-                    Region = "Удмуртия",
-                    Street = "Кирова",
-                    House = "12",
-                    Floor = 3,
-                },
-                new Address
-                {
-                    City = "Барнаул",
-                    Region = "Алтайский край",
-                    Street = "Ленина",
-                    House = "25",
-                    Floor = 5,
-                },
-            };
+                City = "Екатеринбург",
+                Region = "Свердловская обл",
+                Street = "Ленина",
+                House = "35",
+                Floor = 2,
+            },
+            new Address
+            {
+                City = "Москва",
+                Region = "Москва",
+                Street = "Тверская",
+                House = "15",
+                Floor = 5,
+            },
+            new Address
+            {
+                City = "Санкт-Петербург",
+                Region = "Ленинградская обл",
+                Street = "Невский проспект",
+                House = "28",
+                Floor = 3,
+            },
+            new Address
+            {
+                City = "Новосибирск",
+                Region = "Новосибирская обл",
+                Street = "Красный проспект",
+                House = "80",
+                Floor = 4,
+            },
+            new Address
+            {
+                City = "Казань",
+                Region = "Республика Татарстан",
+                Street = "Пушкина",
+                House = "12",
+                Floor = 1,
+            },
+            new Address
+            {
+                City = "Нижний Новгород",
+                Region = "Нижегородская обл",
+                Street = "Большая Покровская",
+                House = "3A",
+                Floor = 6,
+            },
+            new Address
+            {
+                City = "Челябинск",
+                Region = "Челябинская обл",
+                Street = "Мира",
+                House = "22Б",
+                Floor = 2,
+            },
+            new Address
+            {
+                City = "Пермь",
+                Region = "Пермский край",
+                Street = "Кирова",
+                House = "45",
+                Floor = 3,
+            },
+            new Address
+            {
+                City = "Ростов-на-Дону",
+                Region = "Ростовская обл",
+                Street = "Гагарина",
+                House = "10",
+                Floor = 1,
+            },
+            new Address
+            {
+                City = "Уфа",
+                Region = "Республика Башкортостан",
+                Street = "Сергеева",
+                House = "7",
+                Floor = 4,
+            },
+            new Address
+            {
+                City = "Воронеж",
+                Region = "Воронежская обл",
+                Street = "Ленина",
+                House = "18",
+                Floor = 2,
+            },
+            new Address
+            {
+                City = "Красноярск",
+                Region = "Красноярский край",
+                Street = "Советская",
+                House = "55",
+                Floor = 5,
+            },
+            new Address
+            {
+                City = "Самара",
+                Region = "Самарская обл",
+                Street = "Мира",
+                House = "30",
+                Floor = 3,
+            },
+            new Address
+            {
+                City = "Омск",
+                Region = "Омская обл",
+                Street = "Ленинская",
+                House = "42",
+                Floor = 2,
+            },
+            new Address
+            {
+                City = "Владивосток",
+                Region = "Приморский край",
+                Street = "Первомайская",
+                House = "8",
+                Floor = 1,
+            }
+        };
 
-            addresses.ForEach(a => context.Addresses.Add(a));
-            await context.SaveChangesAsync();
+
+        addresses.ForEach(a => context.Addresses.Add(a));
+        await context.SaveChangesAsync();
 
             var properties = new List<Property>
             {
@@ -252,7 +278,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Уютная квартира",
-                    Desc = "Квартира в центре города с современным ремонтом.",
+                    Desc = "Сдам в аренду стильную квартиру с современным ремонтом в центре города. Светлые комнаты, новые коммуникации и современная встроенная техника создают атмосферу комфорта. Уютный балкон с видом на зеленый сквер дополняет общее впечатление. Район насыщен культурными местами, ресторанами и парками. Идеально для тех, кто ценит городской ритм и удобства.",
                     AddressId = addresses[0].Id,
                     Area = 75,
                     Rooms = 2,
@@ -270,7 +296,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Detached,
                     Name = "Семейный дом",
-                    Desc = "Просторный дом с садом и гаражом.",
+                    Desc = "Продам дом в тихом уютном районе за городом, окружённый зелёным лесом и чистым воздухом. Дом оснащён современной системой отопления, просторной гостиной и уютной кухней. Большой сад с плодовыми деревьями и возможностью постройки летней кухни – идеальное место для семейного отдыха и вечеринок на свежем воздухе.",
                     AddressId = addresses[1].Id,
                     Area = 200,
                     Rooms = 5,
@@ -287,7 +313,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Студия",
-                    Desc = "Современная студия в новом доме.",
+                    Desc = "Сдаю современную квартиру с дизайнерским ремонтом в деловом районе. Большие окна дарят много света, а панорамный вид на город создает неповторимую атмосферу. В шаговой доступности крупные торговые центры, офисные здания и деловые клубы. Отличный вариант для молодых профессионалов.",
                     AddressId = addresses[2].Id,
                     Area = 40,
                     Rooms = 1,
@@ -305,7 +331,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Квартира с балконом",
-                    Desc = "Квартира с балконом и видом на парк.",
+                    Desc = "Предлагается уютная квартира с обновленным интерьером в центре большого города. Просторная кухня, стильная гостиная и удобные спальни помогут создать атмосферу домашнего уюта. Рядом с домом расположены парки и транспортная развязка, что позволяет легко добраться до любой точки города",
                     AddressId = addresses[3].Id,
                     Area = 85,
                     Rooms = 3,
@@ -322,7 +348,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Detached,
                     Name = "Дача",
-                    Desc = "Уютная дача на природе.",
+                    Desc = "Предлагаю в аренду дачу с живописным видом на озеро, где можно насладиться спокойствием и природной красотой. Дом выполнен в классическом стиле с просторной террасой, оборудован современной сантехникой и отоплением на дровах. Идеальное место для летних каникул, творческих встреч и семейных праздников.",
                     AddressId = addresses[4].Id,
                     Area = 100,
                     Rooms = 4,
@@ -339,8 +365,8 @@ namespace landlord_be.Data
                     OwnerId = users[5].Id,
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Flat,
-                    Name = "Люкс квартира",
-                    Desc = "Элитная квартира в центре города.",
+                    Name = "Квартира в новостройке",
+                    Desc = "Продам современную квартиру с открытой планировкой и качественным ремонтом в новом жилом комплексе. Высокие потолки, балкон и просторные комнаты порадуют даже самых взыскательных арендаторов. Дом оборудован системами безопасности и рядом с ним находятся все необходимые объекты инфраструктуры",
                     AddressId = addresses[5].Id,
                     Area = 120,
                     Rooms = 3,
@@ -357,7 +383,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Квартира-студия",
-                    Desc = "Студия с современным дизайном.",
+                    Desc = "Аренда уютной квартиры в центре с недавним ремонтом и всеми современными удобствами. Отличная планировка, светлые комнаты, и отдельная кухонная зона создают пространство для творчества. Рядом множество кафе, магазинов и зеленых аллей, где можно насладиться утренним кофе.",
                     AddressId = addresses[6].Id,
                     Area = 50,
                     Rooms = 1,
@@ -375,7 +401,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Detached,
                     Name = "Коттедж",
-                    Desc = "Коттедж с большим участком.",
+                    Desc = "Продам в аренду современный коттедж в элитном загородном поселке. Дом имеет уникальный архитектурный стиль, большое количество стеклянных элементов, что обеспечивает обилие естественного освещения. Просторный участок с ландшафтным дизайном, беседка и бассейн – всё для комфортного проживания и отдыха.",
                     AddressId = addresses[7].Id,
                     Area = 250,
                     Rooms = 6,
@@ -410,7 +436,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Квартира с террасой",
-                    Desc = "Квартира с террасой и видом на реку.",
+                    Desc = "Сдается в аренду красивая квартира на среднем этаже с ремонтом премиум-класса. Интерьер выполнен в современном стиле, используются качественные материалы и техника. Расположение квартиры в историческом районе с насыщенной культурной жизнью подчеркнет ваш утонченный вкус",
                     AddressId = addresses[9].Id,
                     Area = 95,
                     Rooms = 3,
@@ -426,8 +452,8 @@ namespace landlord_be.Data
                     OwnerId = users[0].Id,
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Detached,
-                    Name = "Современный дом",
-                    Desc = "Дом с современными удобствами и большим двором.",
+                    Name = "Дача с видом на озеро",
+                    Desc = "Предлагаю в аренду дачу с живописным видом на озеро, где можно насладиться спокойствием и природной красотой. Дом выполнен в классическом стиле с просторной террасой, оборудован современной сантехникой и отоплением на дровах. Идеальное место для летних каникул, творческих встреч и семейных праздников.",
                     AddressId = addresses[10].Id,
                     Area = 180,
                     Rooms = 4,
@@ -442,10 +468,10 @@ namespace landlord_be.Data
                 new Property
                 {
                     OwnerId = users[1].Id,
-                    OfferTypeId = OfferType.Sell,
+                    OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Квартира в новостройке",
-                    Desc = "Новая квартира с ремонтом в современном доме.",
+                    Desc = "Сдам в аренду уютное жилье в центре со свежим ремонтом и функциональной планировкой. Просторная гостиная с большими окнами, современная кухня и комфортабельные спальни – всё для вашего удобства. Район развитой инфраструктуры с магазинами, парками и транспортными узлами",
                     AddressId = addresses[11].Id,
                     Area = 80,
                     Rooms = 3,
@@ -462,7 +488,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Rent,
                     PropertyTypeId = PropertyType.Flat,
                     Name = "Квартира с видом на город",
-                    Desc = "Квартира с панорамными окнами и видом на город.",
+                    Desc = "Предлагаю в аренду светлую и просторную квартиру с обновленным интерьером в престижном районе. Высокое качество отделки, встроенные шкафы и современные системы отопления подарят комфорт в любое время года. Вокруг – развитая сеть кафе, магазинов и зон отдыха.",
                     AddressId = addresses[12].Id,
                     Area = 90,
                     Rooms = 3,
@@ -480,7 +506,7 @@ namespace landlord_be.Data
                     OfferTypeId = OfferType.Sell,
                     PropertyTypeId = PropertyType.Detached,
                     Name = "Деревянный дом",
-                    Desc = "Экологически чистый деревянный дом в лесу.",
+                    Desc = "Продаю деревянный дом с ремонтами под ключ в живописном месте. Дом представляет собой сочетание классического и модернистского стилей: светлые комнаты, современная кухня и санузлы с новой сантехникой. Идеальное место для постоянного проживания или сезонного отдыха в окружении природы",
                     AddressId = addresses[13].Id,
                     Area = 150,
                     Rooms = 5,
@@ -700,6 +726,111 @@ namespace landlord_be.Data
 
             propertyAttributes.ForEach(a => context.Attributes.Add(a));
             await context.SaveChangesAsync();
+
+            var imageList = ImageLink[][]{
+                [
+                    "public/images/flats/1_1.webp",
+                    "public/images/flats/1_2.webp",
+                    "public/images/flats/1_3.webp",
+                    "public/images/flats/1_4.webp",
+                    "public/images/flats/1_5.webp",
+                    "public/images/flats/1_6.webp",
+                    "public/images/flats/1_7.webp",
+                    "public/images/flats/1_8.webp"
+                ],
+                [
+                    "public/images/houses/1_1.webp",
+                    "public/images/houses/1_2.webp",
+                    "public/images/houses/1_3.webp",
+                    "public/images/houses/1_4.webp",
+                ],
+                [
+                    "public/images/flats/2_1.webp",
+                    "public/images/flats/2_2.webp",
+                    "public/images/flats/2_3.webp",
+                    "public/images/flats/2_4.webp",
+                    "public/images/flats/2_5.webp",
+                ],
+                [
+                    "public/images/flats/3_1.webp",
+                    "public/images/flats/3_2.webp",
+                    "public/images/flats/3_3.webp",
+                    "public/images/flats/3_4.webp",
+                    "public/images/flats/3_5.webp",
+                ],
+                 [
+                    "public/images/houses/2_1.webp",
+                    "public/images/houses/2_2.webp",
+                    "public/images/houses/2_3.webp",
+                    "public/images/houses/2_4.webp",
+                    "public/images/houses/2_5.webp",
+                ],
+
+                [
+                    "public/images/flats/4_1.webp",
+                    "public/images/flats/4_2.webp",
+                    "public/images/flats/4_3.webp",
+                    "public/images/flats/4_4.webp",
+                    "public/images/flats/4_5.webp",
+                ],
+                [
+                    "public/images/flats/5_1.webp",
+                    "public/images/flats/5_2.webp",
+                    "public/images/flats/5_3.webp",
+                    "public/images/flats/5_4.webp",
+                    "public/images/flats/5_5.webp",
+                ],
+                  [
+                    "public/images/houses/3_1.webp",
+                    "public/images/houses/3_2.webp",
+                    "public/images/houses/3_3.webp",
+                    "public/images/houses/3_4.webp",
+                    "public/images/houses/3_5.webp",
+                ],
+
+                [
+                    "public/images/flats/6_1.webp",
+                    "public/images/flats/6_2.webp",
+                    "public/images/flats/6_3.webp",
+                    "public/images/flats/6_4.webp",
+                    "public/images/flats/6_5.webp",
+                ],
+                 [
+                    "public/images/flats/7_1.webp",
+                    "public/images/flats/7_2.webp",
+                    "public/images/flats/7_3.webp",
+                    "public/images/flats/7_4.webp",
+                    "public/images/flats/7_5.webp",
+                ],
+                [
+                    "public/images/houses/4_1.webp",
+                    "public/images/houses/4_2.webp",
+                    "public/images/houses/4_3.webp",
+                    "public/images/houses/4_4.webp",
+                    "public/images/houses/4_5.webp",
+                ],
+                 [
+                    "public/images/flats/8_1.webp",
+                    "public/images/flats/8_2.webp",
+                    "public/images/flats/8_3.webp",
+                    "public/images/flats/8_4.webp",
+                    "public/images/flats/8_5.webp",
+                ],
+                  [
+                    "public/images/flats/9_1.webp",
+                    "public/images/flats/9_2.webp",
+                    "public/images/flats/9_3.webp",
+                    "public/images/flats/9_4.webp",
+                    "public/images/flats/9_5.webp",
+                ],
+                 [
+                    "public/images/houses/5_1.webp",
+                    "public/images/houses/5_2.webp",
+                    "public/images/houses/5_3.webp",
+                    "public/images/houses/5_4.webp",
+                    "public/images/houses/5_5.webp",
+                ],
+            }
 
             var imageLinks = new List<ImageLink>();
 
