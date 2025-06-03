@@ -830,6 +830,20 @@ namespace landlord_be.Data
                     "public/images/houses/5_4.webp",
                     "public/images/houses/5_5.webp",
                 ],
+                    [
+                    "public/images/commercial/1_1.webp",
+                    "public/images/commercial/1_2.webp",
+                    "public/images/commercial/1_3.webp",
+                    "public/images/commercial/1_4.webp",
+                    "public/images/commercial/1_5.webp",
+                ],
+                    [
+                    "public/images/commercial/2_1.webp",
+                    "public/images/commercial/2_2.webp",
+                    "public/images/commercial/2_3.webp",
+                    "public/images/commercial/2_4.webp",
+                    "public/images/commercial/2_5.webp",
+                ],
             }
 
             var imageLinks = new List<ImageLink>();
