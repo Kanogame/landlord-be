@@ -437,22 +437,6 @@ namespace landlord_be.Controllers
                 );
             }
 
-            // Validate attached user if provided
-            if (req.AttachedUserId.HasValue)
-            {
-                var userExists = await _context.Users.AnyAsync(u => u.Id == req.AttachedUserId);
-                if (!userExists)
-                {
-                    return BadRequest(
-                        new CreateCalendarPeriodRespDTO
-                        {
-                            Success = false,
-                            Message = $"Пользователь с id {req.AttachedUserId} не найден",
-                        }
-                    );
-                }
-            }
-
             var calendarPeriod = new CalendarPeriod
             {
                 PropertyId = req.PropertyId,
@@ -461,18 +445,17 @@ namespace landlord_be.Controllers
                 State = req.State,
                 Name = req.Name,
                 Description = req.Description,
-                AttachedUserId = req.AttachedUserId,
+                AttachedUserId = null, // Set to null since we're not accepting it from request
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
             _context.CalendarPeriods.Add(calendarPeriod);
             await _context.SaveChangesAsync();
 
-            // Load the created period with user info
-            var createdPeriod = await _context
-                .CalendarPeriods.Include(cp => cp.AttachedUser)
-                .ThenInclude(u => u.Personal)
-                .FirstAsync(cp => cp.Id == calendarPeriod.Id);
+            // Load the created period (no need to include user info since AttachedUserId is null)
+            var createdPeriod = await _context.CalendarPeriods.FirstAsync(cp =>
+                cp.Id == calendarPeriod.Id
+            );
 
             var periodDTO = MapToDTO(createdPeriod);
 

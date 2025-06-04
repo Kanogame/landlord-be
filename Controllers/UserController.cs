@@ -5,6 +5,7 @@ using System.Text;
 using landlord_be.Data;
 using landlord_be.Models;
 using landlord_be.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -73,6 +74,190 @@ public class UserController(ApplicationDbContext context, IConfiguration configu
                 ActivePropertiesCount = activePropertiesCount,
                 RentedSoldRentEndingCount = rentedSoldRentEndingCount,
                 Experience = experience,
+            }
+        );
+    }
+
+    [HttpPost("edit")]
+    [Authorize]
+    public async Task<ActionResult<EditUserRespDTO>> EditUser(EditUserReqDTO req)
+    {
+        // Get current user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int currentUserId))
+        {
+            return Unauthorized(new BadRequestMessage("User not authenticated"));
+        }
+
+        // Validate input
+        if (string.IsNullOrWhiteSpace(req.FirstName) || string.IsNullOrWhiteSpace(req.LastName))
+        {
+            return BadRequest(new BadRequestMessage("First name and last name are required"));
+        }
+
+        // Validate email format if provided
+        if (!string.IsNullOrWhiteSpace(req.Email) && !IsValidEmail(req.Email))
+        {
+            return BadRequest(new BadRequestMessage("Invalid email format"));
+        }
+
+        // Get user with personal information
+        var user = await _context
+            .Users.Include(u => u.Personal)
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (user == null)
+        {
+            return NotFound(new BadRequestMessage("User not found"));
+        }
+
+        // Check if email is being changed and if new email already exists
+        if (
+            !string.IsNullOrWhiteSpace(req.Email)
+            && req.Email.ToLower().Trim() != user.Email.ToLower()
+        )
+        {
+            bool emailExists = await _context.Users.AnyAsync(u =>
+                u.Email.ToLower() == req.Email.ToLower().Trim() && u.Id != currentUserId
+            );
+
+            if (emailExists)
+            {
+                return BadRequest(new BadRequestMessage("User with this email already exists"));
+            }
+        }
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Update personal information
+            user.Personal.FirstName = req.FirstName.Trim();
+            user.Personal.LastName = req.LastName.Trim();
+            user.Personal.Patronym = req.Patronym?.Trim() ?? "";
+
+            // Update email if provided
+            if (!string.IsNullOrWhiteSpace(req.Email))
+            {
+                user.Email = req.Email.ToLower().Trim();
+            }
+
+            user.UpdateDate = DateTime.UtcNow;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(
+                new EditUserRespDTO
+                {
+                    Success = true,
+                    Message = "User information updated successfully",
+                    User = new UserInfoDTO
+                    {
+                        Id = user.Id,
+                        FirstName = user.Personal.FirstName,
+                        LastName = user.Personal.LastName,
+                        Patronym = user.Personal.Patronym,
+                        Email = user.Email,
+                    },
+                }
+            );
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(
+                500,
+                new BadRequestMessage("Failed to update user information. Please try again.")
+            );
+        }
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<GetCurrentUserRespDTO>> GetCurrentUser()
+    {
+        // Get current user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int currentUserId))
+        {
+            return Unauthorized(new BadRequestMessage("User not authenticated"));
+        }
+
+        // Get user with personal information
+        var user = await _context
+            .Users.Include(u => u.Personal)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == currentUserId);
+
+        if (user == null)
+        {
+            return NotFound(new BadRequestMessage("User not found"));
+        }
+
+        // Get additional statistics
+        var activePropertiesCount = await _context.Properties.CountAsync(p =>
+            p.OwnerId == currentUserId && p.Status == PropertyStatus.Active
+        );
+
+        var totalPropertiesCount = await _context.Properties.CountAsync(p =>
+            p.OwnerId == currentUserId
+        );
+
+        var rentedSoldRentEndingCount = await _context.Properties.CountAsync(p =>
+            p.OwnerId == currentUserId
+            && (
+                p.Status == PropertyStatus.Rented
+                || p.Status == PropertyStatus.Sold
+                || p.Status == PropertyStatus.RentEnding
+            )
+        );
+
+        // Calculate experience
+        var timeSinceRegistration = DateTime.UtcNow - user.RegisterDate;
+        var experienceYears = (int)(timeSinceRegistration.TotalDays / 365.25);
+        var experienceMonths = (int)((timeSinceRegistration.TotalDays % 365.25) / 30.44);
+
+        string experience;
+        if (experienceYears > 0)
+        {
+            experience =
+                experienceMonths > 0
+                    ? $"{experienceYears} лет {experienceMonths} месяцев"
+                    : $"{experienceYears} лет";
+        }
+        else
+        {
+            experience = experienceMonths > 0 ? $"{experienceMonths} месяцев" : "Менее месяца";
+        }
+
+        return Ok(
+            new GetCurrentUserRespDTO
+            {
+                Success = true,
+                User = new CurrentUserDTO
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    RegisterDate = user.RegisterDate,
+                    UpdateDate = user.UpdateDate,
+                    ProfileLink = user.GetProfileLink(),
+                    Personal = new PersonalDTO
+                    {
+                        Id = user.Personal.Id,
+                        FirstName = user.Personal.FirstName,
+                        LastName = user.Personal.LastName,
+                        Patronym = user.Personal.Patronym,
+                        FullName = user.Personal.FullName,
+                    },
+                    Statistics = new UserStatisticsDTO
+                    {
+                        ActivePropertiesCount = activePropertiesCount,
+                        TotalPropertiesCount = totalPropertiesCount,
+                        RentedSoldRentEndingCount = rentedSoldRentEndingCount,
+                        Experience = experience,
+                    },
+                },
             }
         );
     }

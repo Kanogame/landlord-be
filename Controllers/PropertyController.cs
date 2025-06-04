@@ -400,30 +400,7 @@ public class PropertyController(ApplicationDbContext context) : ControllerBase
 
             await transaction.CommitAsync();
 
-            // Reload property with all related data
-            var createdProperty = await _context
-                .Properties.Include(p => p.User)
-                .ThenInclude(u => u.Personal)
-                .Include(p => p.Address)
-                .Include(p => p.ImageLinks)
-                .Include(p => p.PropertyAttributes)
-                .AsSplitQuery()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == property.Id);
-
-            if (createdProperty != null)
-            {
-                var dtoProperty = new DTOPropertyWithType(
-                    createdProperty,
-                    createdProperty.User?.Personal?.FirstName,
-                    createdProperty.User?.GetProfileLink(),
-                    false // Owner's own property, not bookmarked
-                );
-
-                return Ok(dtoProperty);
-            }
-
-            return BadRequest(new BadRequestMessage("Failed to create property"));
+            return Ok(new successMessage("Сохранено успешно"));
         }
         catch
         {
@@ -518,30 +495,7 @@ public class PropertyController(ApplicationDbContext context) : ControllerBase
 
         await _context.SaveChangesAsync();
 
-        // Reload property with all related data
-        var updatedProperty = await _context
-            .Properties.Include(p => p.User)
-            .ThenInclude(u => u.Personal)
-            .Include(p => p.Address)
-            .Include(p => p.ImageLinks)
-            .Include(p => p.PropertyAttributes)
-            .AsSplitQuery()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id);
-
-        if (updatedProperty != null)
-        {
-            var dtoProperty = new DTOPropertyWithType(
-                updatedProperty,
-                updatedProperty.User?.Personal?.FirstName,
-                updatedProperty.User?.GetProfileLink(),
-                false // Owner's own property, not bookmarked
-            );
-
-            return Ok(dtoProperty);
-        }
-
-        return BadRequest(new BadRequestMessage("Failed to update property"));
+        return Ok(new successMessage("Сохранено успешно"));
     }
 
     [HttpPost("get_own_properties")]
