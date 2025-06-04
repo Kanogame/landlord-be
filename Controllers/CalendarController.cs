@@ -25,6 +25,260 @@ namespace landlord_be.Controllers
             return int.TryParse(userIdClaim, out var userId) ? userId : null;
         }
 
+        [HttpPost("rent-buy-property")]
+        [Authorize]
+        public async Task<ActionResult<RentBuyPropertyRespDTO>> RentBuyProperty(
+            RentBuyPropertyReqDTO req
+        )
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized(new BadRequestMessage("User not authenticated"));
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // Validate property exists and is active
+                var property = await _context
+                    .Properties.Include(p => p.User)
+                    .ThenInclude(u => u.Personal)
+                    .Include(p => p.Address)
+                    .FirstOrDefaultAsync(p => p.Id == req.PropertyId);
+
+                if (property == null)
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = $"Property with id {req.PropertyId} not found",
+                        }
+                    );
+                }
+
+                if (
+                    property.Status != PropertyStatus.Active
+                    && property.Status != PropertyStatus.RentEnding
+                )
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = "Property is not available for rent or purchase",
+                        }
+                    );
+                }
+
+                // Validate buyer/renter exists
+                var buyerRenter = await _context
+                    .Users.Include(u => u.Personal)
+                    .FirstOrDefaultAsync(u => u.Id == req.BuyerRenterId);
+
+                if (buyerRenter == null)
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = $"User with id {req.BuyerRenterId} not found",
+                        }
+                    );
+                }
+
+                // Validate that buyer/renter is not the owner
+                if (property.OwnerId == req.BuyerRenterId)
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = "Owner cannot rent or buy their own property",
+                        }
+                    );
+                }
+
+                // Validate transaction type matches property offer type
+                if (
+                    req.TransactionType == TransactionType.Rent
+                    && property.OfferTypeId != OfferType.Rent
+                )
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = "Property is not available for rent",
+                        }
+                    );
+                }
+
+                if (
+                    req.TransactionType == TransactionType.Buy
+                    && property.OfferTypeId != OfferType.Sale
+                )
+                {
+                    return BadRequest(
+                        new RentBuyPropertyRespDTO
+                        {
+                            Success = false,
+                            Message = "Property is not available for sale",
+                        }
+                    );
+                }
+
+                CalendarPeriodDTO? calendarPeriodDTO = null;
+
+                // Handle rental transaction
+                if (req.TransactionType == TransactionType.Rent)
+                {
+                    // Validate dates for rental
+                    if (!req.StartDate.HasValue || !req.EndDate.HasValue)
+                    {
+                        return BadRequest(
+                            new RentBuyPropertyRespDTO
+                            {
+                                Success = false,
+                                Message = "Start date and end date are required for rental",
+                            }
+                        );
+                    }
+
+                    if (req.StartDate >= req.EndDate)
+                    {
+                        return BadRequest(
+                            new RentBuyPropertyRespDTO
+                            {
+                                Success = false,
+                                Message = "Start date must be before end date",
+                            }
+                        );
+                    }
+
+                    if (req.StartDate < DateTime.UtcNow.Date)
+                    {
+                        return BadRequest(
+                            new RentBuyPropertyRespDTO
+                            {
+                                Success = false,
+                                Message = "Start date cannot be in the past",
+                            }
+                        );
+                    }
+
+                    // Check for overlapping periods
+                    var hasOverlap = await _context.CalendarPeriods.AnyAsync(cp =>
+                        cp.PropertyId == req.PropertyId
+                        && (
+                            (req.StartDate >= cp.StartDate && req.StartDate < cp.EndDate)
+                            || (req.EndDate > cp.StartDate && req.EndDate <= cp.EndDate)
+                            || (req.StartDate <= cp.StartDate && req.EndDate >= cp.EndDate)
+                        )
+                    );
+
+                    if (hasOverlap)
+                    {
+                        return BadRequest(
+                            new RentBuyPropertyRespDTO
+                            {
+                                Success = false,
+                                Message = "Selected period overlaps with existing calendar entry",
+                            }
+                        );
+                    }
+
+                    // Create calendar period for rental
+                    var calendarPeriod = new CalendarPeriod
+                    {
+                        PropertyId = req.PropertyId,
+                        StartDate = req.StartDate.Value,
+                        EndDate = req.EndDate.Value,
+                        State = CalendarState.Rented,
+                        Name = $"Аренда - {buyerRenter.Personal?.FirstName ?? "Арендатор"}",
+                        Description =
+                            req.Notes
+                            ?? $"Сдано в аренду пользователю {buyerRenter.Personal?.FirstName} {buyerRenter.Personal?.LastName}",
+                        AttachedUserId = req.BuyerRenterId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+
+                    _context.CalendarPeriods.Add(calendarPeriod);
+                    await _context.SaveChangesAsync();
+
+                    calendarPeriodDTO = MapToDTO(calendarPeriod);
+                    calendarPeriodDTO.AttachedUserName = buyerRenter.Personal?.FirstName ?? "";
+
+                    // Update property status to rented
+                    property.Status = PropertyStatus.Rented;
+                }
+                else // Buy transaction
+                {
+                    // Update property status to sold and change owner
+                    property.Status = PropertyStatus.Sold;
+                    property.OwnerId = req.BuyerRenterId;
+                }
+
+                property.UpdatedAt = DateTime.UtcNow;
+                _context.Properties.Update(property);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // Prepare response
+                var transactionResult = new TransactionResultDTO
+                {
+                    PropertyId = property.Id,
+                    PropertyName = property.Name,
+                    PropertyAddress = property.Address?.DisplayAddress ?? "",
+                    SellerId =
+                        property.OwnerId == req.BuyerRenterId ? property.OwnerId : property.OwnerId, // Original owner for rent, new owner for buy
+                    SellerName =
+                        property.User?.Personal != null
+                            ? $"{property.User.Personal.FirstName} {property.User.Personal.LastName}".Trim()
+                            : "",
+                    BuyerRenterId = req.BuyerRenterId,
+                    BuyerRenterName =
+                        buyerRenter.Personal != null
+                            ? $"{buyerRenter.Personal.FirstName} {buyerRenter.Personal.LastName}".Trim()
+                            : "",
+                    TransactionType = req.TransactionType,
+                    NewPropertyStatus = property.Status,
+                    CalendarPeriod = calendarPeriodDTO,
+                    TransactionDate = DateTime.UtcNow,
+                    Price = property.Price,
+                };
+
+                string successMessage =
+                    req.TransactionType == TransactionType.Rent
+                        ? "Property rented successfully"
+                        : "Property purchased successfully";
+
+                return Ok(
+                    new RentBuyPropertyRespDTO
+                    {
+                        Success = true,
+                        Message = successMessage,
+                        Transaction = transactionResult,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(
+                    500,
+                    new RentBuyPropertyRespDTO
+                    {
+                        Success = false,
+                        Message = "An error occurred while processing the transaction",
+                    }
+                );
+            }
+        }
+
         [HttpPost("create")]
         public async Task<ActionResult<CreateCalendarPeriodRespDTO>> CreateCalendarPeriod(
             CreateCalendarPeriodReqDTO req
