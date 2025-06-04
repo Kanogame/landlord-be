@@ -17,7 +17,7 @@ namespace landlord_be.Models.DTO
         public string? Desc { get; set; }
 
         [Required]
-        public CreateAddressDTO Address { get; set; }
+        public CreateAddressDTO Address { get; set; } = null!;
 
         [Required]
         [Range(1, int.MaxValue)]

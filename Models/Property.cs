@@ -106,10 +106,10 @@ namespace landlord_be.Models
         public RentPeriod Period { get; set; }
 
         // relations
-        public User? User { get; set; }
-        public IEnumerable<ImageLink>? ImageLinks { get; set; }
-        public Address? Address { get; set; }
-        public ICollection<PropertyAttribute>? PropertyAttributes { get; set; }
+        public User User { get; set; } = null!;
+        public IEnumerable<ImageLink> ImageLinks { get; set; } = null!;
+        public Address Address { get; set; } = null!;
+        public ICollection<PropertyAttribute> PropertyAttributes { get; set; } = null!;
 
         public string GetPropertyLink()
         {
@@ -175,10 +175,10 @@ namespace landlord_be.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public Address? Address { get; set; }
+        public Address Address { get; set; } = null!;
 
-        public IEnumerable<ImageLink>? ImageLinks { get; set; }
-        public ICollection<PropertyAttribute>? PropertyAttributes { get; set; }
+        public IEnumerable<ImageLink> ImageLinks { get; set; } = null!;
+        public ICollection<PropertyAttribute> PropertyAttributes { get; set; } = null!;
 
         public string PropertyLink { get; set; }
         public string Username { get; set; }

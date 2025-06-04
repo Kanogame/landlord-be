@@ -26,7 +26,7 @@ namespace landlord_be.Models
         public bool IsRead { get; set; } = false;
 
         // Navigation properties
-        public Chat? Chat { get; set; }
-        public User? Sender { get; set; }
+        public Chat Chat { get; set; } = null!;
+        public User Sender { get; set; } = null!;
     }
 }

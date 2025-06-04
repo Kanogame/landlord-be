@@ -12,14 +12,9 @@ namespace landlord_be.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ChatController : ControllerBase
+    public class ChatController(ApplicationDbContext context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public ChatController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         [HttpPost("create")]
         public async Task<ActionResult<CreateChatRespDTO>> CreateChat(CreateChatReqDTO req)

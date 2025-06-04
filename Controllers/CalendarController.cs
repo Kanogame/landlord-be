@@ -10,14 +10,9 @@ namespace landlord_be.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CalendarController : ControllerBase
+    public class CalendarController(ApplicationDbContext context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public CalendarController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         private int? GetCurrentUserId()
         {
@@ -34,7 +29,7 @@ namespace landlord_be.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return Unauthorized(new BadRequestMessage("User not authenticated"));
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -53,7 +48,7 @@ namespace landlord_be.Controllers
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = $"Property with id {req.PropertyId} not found",
+                            Message = $"Недвижимость с id {req.PropertyId} не найдена",
                         }
                     );
                 }
@@ -67,7 +62,7 @@ namespace landlord_be.Controllers
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = "Property is not available for rent or purchase",
+                            Message = "Недвижимость недоступна для аренды или покупки",
                         }
                     );
                 }
@@ -75,7 +70,7 @@ namespace landlord_be.Controllers
                 // Validate buyer/renter exists
                 var buyerRenter = await _context
                     .Users.Include(u => u.Personal)
-                    .FirstOrDefaultAsync(u => u.Id == req.BuyerRenterId);
+                    .FirstOrDefaultAsync(u => u.Id == currentUserId);
 
                 if (buyerRenter == null)
                 {
@@ -83,19 +78,20 @@ namespace landlord_be.Controllers
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = $"User with id {req.BuyerRenterId} not found",
+                            Message = $"Пользователь с id {currentUserId} не найден",
                         }
                     );
                 }
 
                 // Validate that buyer/renter is not the owner
-                if (property.OwnerId == req.BuyerRenterId)
+                if (property.OwnerId == currentUserId)
                 {
                     return BadRequest(
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = "Owner cannot rent or buy their own property",
+                            Message =
+                                "Владелец не может арендовать или купить свою собственную недвижимость",
                         }
                     );
                 }
@@ -110,7 +106,7 @@ namespace landlord_be.Controllers
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = "Property is not available for rent",
+                            Message = "Недвижимость недоступна для аренды",
                         }
                     );
                 }
@@ -124,7 +120,7 @@ namespace landlord_be.Controllers
                         new RentBuyPropertyRespDTO
                         {
                             Success = false,
-                            Message = "Property is not available for sale",
+                            Message = "Недвижимость недоступна для продажи",
                         }
                     );
                 }
@@ -134,73 +130,41 @@ namespace landlord_be.Controllers
                 // Handle rental transaction
                 if (req.TransactionType == TransactionType.Rent)
                 {
-                    // Validate dates for rental
-                    if (!req.StartDate.HasValue || !req.EndDate.HasValue)
-                    {
-                        return BadRequest(
-                            new RentBuyPropertyRespDTO
-                            {
-                                Success = false,
-                                Message = "Start date and end date are required for rental",
-                            }
-                        );
-                    }
-
-                    if (req.StartDate >= req.EndDate)
-                    {
-                        return BadRequest(
-                            new RentBuyPropertyRespDTO
-                            {
-                                Success = false,
-                                Message = "Start date must be before end date",
-                            }
-                        );
-                    }
-
-                    if (req.StartDate < DateTime.UtcNow.Date)
-                    {
-                        return BadRequest(
-                            new RentBuyPropertyRespDTO
-                            {
-                                Success = false,
-                                Message = "Start date cannot be in the past",
-                            }
-                        );
-                    }
-
-                    // Check for overlapping periods
-                    var hasOverlap = await _context.CalendarPeriods.AnyAsync(cp =>
+                    // Check if property is already being rented (has active rental period)
+                    var existingRental = await _context.CalendarPeriods.AnyAsync(cp =>
                         cp.PropertyId == req.PropertyId
-                        && (
-                            (req.StartDate >= cp.StartDate && req.StartDate < cp.EndDate)
-                            || (req.EndDate > cp.StartDate && req.EndDate <= cp.EndDate)
-                            || (req.StartDate <= cp.StartDate && req.EndDate >= cp.EndDate)
-                        )
+                        && cp.State == CalendarState.Rented
+                        && cp.StartDate <= DateTime.UtcNow.Date
+                        && cp.EndDate > DateTime.UtcNow.Date
                     );
 
-                    if (hasOverlap)
+                    if (existingRental)
                     {
                         return BadRequest(
                             new RentBuyPropertyRespDTO
                             {
                                 Success = false,
-                                Message = "Selected period overlaps with existing calendar entry",
+                                Message = "Недвижимость уже сдается в аренду",
                             }
                         );
                     }
 
-                    // Create calendar period for rental
+                    // Create calendar period for rental starting today and ending far in the future
+                    // We'll use a date far in the future (e.g., 10 years) as a placeholder
+                    var startDate = DateTime.UtcNow.Date;
+                    var endDate = DateTime.UtcNow.Date.AddYears(10); // Placeholder end date
+
                     var calendarPeriod = new CalendarPeriod
                     {
                         PropertyId = req.PropertyId,
-                        StartDate = req.StartDate.Value,
-                        EndDate = req.EndDate.Value,
+                        StartDate = startDate,
+                        EndDate = endDate,
                         State = CalendarState.Rented,
                         Name = $"Аренда - {buyerRenter.Personal?.FirstName ?? "Арендатор"}",
                         Description =
                             req.Notes
-                            ?? $"Сдано в аренду пользователю {buyerRenter.Personal?.FirstName} {buyerRenter.Personal?.LastName}",
-                        AttachedUserId = req.BuyerRenterId,
+                            ?? $"Сдано в аренду пользователю {buyerRenter.Personal?.FirstName} {buyerRenter.Personal?.LastName}. Аренда началась {startDate:dd.MM.yyyy}",
+                        AttachedUserId = currentUserId,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                     };
@@ -216,9 +180,33 @@ namespace landlord_be.Controllers
                 }
                 else // Buy transaction
                 {
+                    // Create calendar period for purchase record
+                    var purchaseDate = DateTime.UtcNow.Date;
+
+                    var calendarPeriod = new CalendarPeriod
+                    {
+                        PropertyId = req.PropertyId,
+                        StartDate = purchaseDate,
+                        EndDate = purchaseDate, // Same day for purchase
+                        State = CalendarState.Sold,
+                        Name = $"Покупка - {buyerRenter.Personal?.FirstName ?? "Покупатель"}",
+                        Description =
+                            req.Notes
+                            ?? $"Приобретено пользователем {buyerRenter.Personal?.FirstName} {buyerRenter.Personal?.LastName}. Покупка совершена {purchaseDate:dd.MM.yyyy}",
+                        AttachedUserId = currentUserId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+
+                    _context.CalendarPeriods.Add(calendarPeriod);
+                    await _context.SaveChangesAsync();
+
+                    calendarPeriodDTO = MapToDTO(calendarPeriod);
+                    calendarPeriodDTO.AttachedUserName = buyerRenter.Personal?.FirstName ?? "";
+
                     // Update property status to sold and change owner
                     property.Status = PropertyStatus.Sold;
-                    property.OwnerId = req.BuyerRenterId;
+                    property.OwnerId = currentUserId ?? -1;
                 }
 
                 property.UpdatedAt = DateTime.UtcNow;
@@ -234,12 +222,14 @@ namespace landlord_be.Controllers
                     PropertyName = property.Name,
                     PropertyAddress = property.Address?.DisplayAddress ?? "",
                     SellerId =
-                        property.OwnerId == req.BuyerRenterId ? property.OwnerId : property.OwnerId, // Original owner for rent, new owner for buy
+                        req.TransactionType == TransactionType.Buy
+                            ? property.OwnerId
+                            : property.OwnerId,
                     SellerName =
                         property.User?.Personal != null
                             ? $"{property.User.Personal.FirstName} {property.User.Personal.LastName}".Trim()
                             : "",
-                    BuyerRenterId = req.BuyerRenterId,
+                    BuyerRenterId = currentUserId ?? -1,
                     BuyerRenterName =
                         buyerRenter.Personal != null
                             ? $"{buyerRenter.Personal.FirstName} {buyerRenter.Personal.LastName}".Trim()
@@ -253,8 +243,8 @@ namespace landlord_be.Controllers
 
                 string successMessage =
                     req.TransactionType == TransactionType.Rent
-                        ? "Property rented successfully"
-                        : "Property purchased successfully";
+                        ? "Недвижимость успешно арендована. Период аренды начался сегодня."
+                        : "Недвижимость успешно приобретена";
 
                 return Ok(
                     new RentBuyPropertyRespDTO
@@ -265,7 +255,7 @@ namespace landlord_be.Controllers
                     }
                 );
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 return StatusCode(
@@ -273,10 +263,103 @@ namespace landlord_be.Controllers
                     new RentBuyPropertyRespDTO
                     {
                         Success = false,
-                        Message = "An error occurred while processing the transaction",
+                        Message = "Произошла ошибка при обработке транзакции",
                     }
                 );
             }
+        }
+
+        [HttpPost("end-rental")]
+        [Authorize]
+        public async Task<ActionResult<EndRentalRespDTO>> EndRental(EndRentalReqDTO req)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
+            }
+
+            // Validate property exists and user owns it
+            var property = await _context.Properties.FirstOrDefaultAsync(p =>
+                p.Id == req.PropertyId
+            );
+
+            if (property == null)
+            {
+                return BadRequest(
+                    new EndRentalRespDTO
+                    {
+                        Success = false,
+                        Message = $"Недвижимость с id {req.PropertyId} не найдена",
+                    }
+                );
+            }
+
+            if (property.OwnerId != currentUserId)
+            {
+                return Forbid("Вы можете завершить аренду только для своей недвижимости");
+            }
+
+            if (property.Status != PropertyStatus.Rented)
+            {
+                return BadRequest(
+                    new EndRentalRespDTO
+                    {
+                        Success = false,
+                        Message = "Недвижимость в настоящее время не сдается в аренду",
+                    }
+                );
+            }
+
+            // Find active rental period
+            var activeRental = await _context.CalendarPeriods.FirstOrDefaultAsync(cp =>
+                cp.PropertyId == req.PropertyId
+                && cp.State == CalendarState.Rented
+                && cp.StartDate <= DateTime.UtcNow.Date
+                && cp.EndDate > DateTime.UtcNow.Date
+            );
+
+            if (activeRental == null)
+            {
+                return BadRequest(
+                    new EndRentalRespDTO
+                    {
+                        Success = false,
+                        Message = "Активный период аренды для этой недвижимости не найден",
+                    }
+                );
+            }
+
+            // End the rental period today
+            var endDate = DateTime.UtcNow.Date;
+            activeRental.EndDate = endDate;
+            activeRental.UpdatedAt = DateTime.UtcNow;
+
+            if (!string.IsNullOrWhiteSpace(req.Notes))
+            {
+                activeRental.Description += $" Аренда завершена {endDate:dd.MM.yyyy}. {req.Notes}";
+            }
+            else
+            {
+                activeRental.Description += $" Аренда завершена {endDate:dd.MM.yyyy}.";
+            }
+
+            // Update property status back to active
+            property.Status = PropertyStatus.Active;
+            property.UpdatedAt = DateTime.UtcNow;
+
+            _context.CalendarPeriods.Update(activeRental);
+            _context.Properties.Update(property);
+            await _context.SaveChangesAsync();
+
+            return Ok(
+                new EndRentalRespDTO
+                {
+                    Success = true,
+                    Message = "Аренда успешно завершена. Недвижимость снова доступна.",
+                    EndDate = endDate,
+                }
+            );
         }
 
         [HttpPost("create")]
@@ -287,7 +370,7 @@ namespace landlord_be.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return Unauthorized(new BadRequestMessage("User not authenticated"));
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
             }
 
             // Validate property exists and user owns it
@@ -300,7 +383,7 @@ namespace landlord_be.Controllers
                     new CreateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = $"Property with id {req.PropertyId} not found",
+                        Message = $"Недвижимость с id {req.PropertyId} не найдена",
                     }
                 );
             }
@@ -317,7 +400,7 @@ namespace landlord_be.Controllers
                     new CreateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Start date must be before end date",
+                        Message = "Дата начала должна быть раньше даты окончания",
                     }
                 );
             }
@@ -328,7 +411,7 @@ namespace landlord_be.Controllers
                     new CreateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Start date cannot be in the past",
+                        Message = "Дата начала не может быть в прошлом",
                     }
                 );
             }
@@ -349,7 +432,7 @@ namespace landlord_be.Controllers
                     new CreateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Period overlaps with existing calendar entry",
+                        Message = "Период пересекается с существующей записью в календаре",
                     }
                 );
             }
@@ -364,7 +447,7 @@ namespace landlord_be.Controllers
                         new CreateCalendarPeriodRespDTO
                         {
                             Success = false,
-                            Message = $"User with id {req.AttachedUserId} not found",
+                            Message = $"Пользователь с id {req.AttachedUserId} не найден",
                         }
                     );
                 }
@@ -382,7 +465,6 @@ namespace landlord_be.Controllers
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
-
             _context.CalendarPeriods.Add(calendarPeriod);
             await _context.SaveChangesAsync();
 
@@ -398,7 +480,7 @@ namespace landlord_be.Controllers
                 new CreateCalendarPeriodRespDTO
                 {
                     Success = true,
-                    Message = "Calendar period created successfully",
+                    Message = "Период календаря успешно создан",
                     CalendarPeriod = periodDTO,
                 }
             );
@@ -412,7 +494,7 @@ namespace landlord_be.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return Unauthorized(new BadRequestMessage("User not authenticated"));
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
             }
 
             var calendarPeriod = await _context
@@ -425,7 +507,7 @@ namespace landlord_be.Controllers
                     new UpdateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Calendar period not found",
+                        Message = "Период календаря не найден",
                     }
                 );
             }
@@ -442,7 +524,7 @@ namespace landlord_be.Controllers
                     new UpdateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Start date must be before end date",
+                        Message = "Дата начала должна быть раньше даты окончания",
                     }
                 );
             }
@@ -464,7 +546,7 @@ namespace landlord_be.Controllers
                     new UpdateCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Period overlaps with existing calendar entry",
+                        Message = "Период пересекается с существующей записью в календаре",
                     }
                 );
             }
@@ -479,7 +561,7 @@ namespace landlord_be.Controllers
                         new UpdateCalendarPeriodRespDTO
                         {
                             Success = false,
-                            Message = $"User with id {req.AttachedUserId} not found",
+                            Message = $"Пользователь с id {req.AttachedUserId} не найден",
                         }
                     );
                 }
@@ -507,7 +589,7 @@ namespace landlord_be.Controllers
                 new UpdateCalendarPeriodRespDTO
                 {
                     Success = true,
-                    Message = "Calendar period updated successfully",
+                    Message = "Период календаря успешно обновлен",
                     CalendarPeriod = periodDTO,
                 }
             );
@@ -524,7 +606,13 @@ namespace landlord_be.Controllers
             );
             if (property == null)
             {
-                return BadRequest(new GetCalendarPeriodsRespDTO { Success = false });
+                return BadRequest(
+                    new GetCalendarPeriodsRespDTO
+                    {
+                        Success = false,
+                        Message = $"Недвижимость с id {req.PropertyId} не найдена",
+                    }
+                );
             }
 
             IQueryable<CalendarPeriod> query = _context
@@ -553,6 +641,7 @@ namespace landlord_be.Controllers
                 new GetCalendarPeriodsRespDTO
                 {
                     Success = true,
+                    Message = "",
                     Count = periodDTOs.Count,
                     Periods = periodDTOs,
                 }
@@ -567,7 +656,7 @@ namespace landlord_be.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return Unauthorized(new BadRequestMessage("User not authenticated"));
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
             }
 
             var calendarPeriod = await _context
@@ -580,7 +669,7 @@ namespace landlord_be.Controllers
                     new RemoveCalendarPeriodRespDTO
                     {
                         Success = false,
-                        Message = "Calendar period not found",
+                        Message = "Период календаря не найден",
                     }
                 );
             }
@@ -597,7 +686,7 @@ namespace landlord_be.Controllers
                 new RemoveCalendarPeriodRespDTO
                 {
                     Success = true,
-                    Message = "Calendar period removed successfully",
+                    Message = "Период календаря успешно удален",
                 }
             );
         }
@@ -611,13 +700,13 @@ namespace landlord_be.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return Unauthorized(new BadRequestMessage("User not authenticated"));
+                return Unauthorized(new BadRequestMessage("Пользователь не авторизован"));
             }
 
-            IQueryable<CalendarPeriod> query = _context
+            // Modified query to include both rental history and purchase history
+            IQueryable<CalendarPeriod> rentalQuery = _context
                 .CalendarPeriods.Where(cp =>
-                    cp.AttachedUserId == currentUserId
-                    && (cp.State == CalendarState.Rented || cp.State == CalendarState.Sold)
+                    cp.AttachedUserId == currentUserId && cp.State == CalendarState.Rented
                 )
                 .Include(cp => cp.Property)
                 .ThenInclude(p => p.User)
@@ -629,37 +718,76 @@ namespace landlord_be.Controllers
                 .Include(cp => cp.Property)
                 .ThenInclude(p => p.PropertyAttributes);
 
-            // Apply sorting based on calendar period creation date or property attributes
-            query = req.SortBy switch
+            // Query for purchased properties (where user became the owner)
+            IQueryable<Property> purchaseQuery = _context
+                .Properties.Where(p =>
+                    p.OwnerId == currentUserId
+                    && p.Status == PropertyStatus.Sold
+                    && p.CreatedAt != p.UpdatedAt // Property was transferred, not originally created by user
+                )
+                .Include(p => p.User) // Original owner
+                .ThenInclude(u => u.Personal)
+                .Include(p => p.Address)
+                .Include(p => p.ImageLinks)
+                .Include(p => p.PropertyAttributes);
+
+            // Get rental periods
+            var rentalPeriods = await rentalQuery.AsNoTracking().ToListAsync();
+
+            // Get purchased properties
+            var purchasedProperties = await purchaseQuery.AsNoTracking().ToListAsync();
+
+            // Combine both lists with transaction date for sorting
+            var combinedHistory =
+                new List<(Property Property, DateTime TransactionDate, bool IsRental)>();
+
+            // Add rental history
+            combinedHistory.AddRange(rentalPeriods.Select(cp => (cp.Property, cp.CreatedAt, true)));
+
+            // Add purchase history
+            combinedHistory.AddRange(purchasedProperties.Select(p => (p, p.UpdatedAt, false)));
+
+            // Apply sorting
+            var sortedHistory = req.SortBy switch
             {
-                PropertySortBy.PriceAsc => query.OrderBy(cp => cp.Property.Price),
-                PropertySortBy.PriceDesc => query.OrderByDescending(cp => cp.Property.Price),
-                PropertySortBy.AreaAsc => query.OrderBy(cp => cp.Property.Area),
-                PropertySortBy.AreaDesc => query.OrderByDescending(cp => cp.Property.Area),
-                PropertySortBy.CreatedAsc => query.OrderBy(cp => cp.CreatedAt),
-                PropertySortBy.CreatedDesc => query.OrderByDescending(cp => cp.CreatedAt),
-                _ => query.OrderByDescending(cp => cp.CreatedAt),
+                PropertySortBy.PriceAsc => combinedHistory.OrderBy(h => h.Property.Price),
+                PropertySortBy.PriceDesc => combinedHistory.OrderByDescending(h =>
+                    h.Property.Price
+                ),
+                PropertySortBy.AreaAsc => combinedHistory.OrderBy(h => h.Property.Area),
+                PropertySortBy.AreaDesc => combinedHistory.OrderByDescending(h => h.Property.Area),
+                PropertySortBy.CreatedAsc => combinedHistory.OrderBy(h => h.TransactionDate),
+                PropertySortBy.CreatedDesc => combinedHistory.OrderByDescending(h =>
+                    h.TransactionDate
+                ),
+                _ => combinedHistory.OrderByDescending(h => h.TransactionDate),
             };
 
-            var totalCount = await query.CountAsync();
+            var totalCount = combinedHistory.Count;
 
-            var calendarPeriods = await query
+            var pagedHistory = sortedHistory
                 .Skip((req.PageNumber - 1) * req.PageSize)
                 .Take(req.PageSize)
-                .AsSplitQuery()
-                .AsNoTracking()
-                .ToListAsync();
+                .ToList();
 
-            var properties = calendarPeriods
-                .Select(cp => new DTOPropertyWithType(
-                    cp.Property,
-                    cp.Property.User?.Personal?.FirstName,
-                    cp.Property.User?.GetProfileLink(),
-                    false // Not bookmarked in this context, showing rental/purchase history
+            var properties = pagedHistory
+                .Select(h => new DTOPropertyWithType(
+                    h.Property,
+                    h.Property.User?.Personal?.FirstName,
+                    h.Property.User?.GetProfileLink(),
+                    false // Not bookmarked in this context
                 ))
                 .ToList();
 
-            return Ok(new GetUserHistoryRespDTO { Count = totalCount, Properties = properties });
+            return Ok(
+                new GetUserHistoryRespDTO
+                {
+                    Success = true,
+                    Message = "",
+                    Count = totalCount,
+                    Properties = properties,
+                }
+            );
         }
 
         private static CalendarPeriodDTO MapToDTO(CalendarPeriod period)

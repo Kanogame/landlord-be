@@ -79,6 +79,7 @@ namespace landlord_be.Models.DTO
     public class GetCalendarPeriodsRespDTO
     {
         public bool Success { get; set; }
+        public string Message { get; set; } = "";
         public int Count { get; set; }
         public List<CalendarPeriodDTO> Periods { get; set; } = new List<CalendarPeriodDTO>();
     }
@@ -91,6 +92,8 @@ namespace landlord_be.Models.DTO
 
     public class GetUserHistoryRespDTO
     {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
         public int Count { get; set; }
         public List<DTOPropertyWithType> Properties { get; set; } = new();
     }

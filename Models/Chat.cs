@@ -31,9 +31,9 @@ namespace landlord_be.Models
         public bool IsArchivedByUser2 { get; set; } = false;
 
         // Navigation properties
-        public User? User1 { get; set; }
-        public User? User2 { get; set; }
-        public Property? Property { get; set; }
-        public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public User User1 { get; set; } = null!;
+        public User User2 { get; set; } = null!;
+        public Property Property { get; set; } = null!;
+        public ICollection<ChatMessage> Messages { get; set; } = [];
     }
 }

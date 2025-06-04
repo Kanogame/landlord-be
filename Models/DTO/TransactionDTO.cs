@@ -5,11 +5,21 @@ namespace landlord_be.Models.DTO
     public class RentBuyPropertyReqDTO
     {
         public int PropertyId { get; set; }
-        public int BuyerRenterId { get; set; }
         public TransactionType TransactionType { get; set; } // Rent or Buy
-        public DateTime? StartDate { get; set; } // Required for rent, optional for buy
-        public DateTime? EndDate { get; set; } // Required for rent, not used for buy
         public string? Notes { get; set; }
+    }
+
+    public class EndRentalReqDTO
+    {
+        public int PropertyId { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    public class EndRentalRespDTO
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+        public DateTime? EndDate { get; set; }
     }
 
     public class RentBuyPropertyRespDTO

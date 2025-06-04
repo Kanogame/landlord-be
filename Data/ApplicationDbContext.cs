@@ -18,14 +18,14 @@ namespace landlord_be.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Personal> Personals => Set<Personal>();
         public DbSet<VerificationPending> VerificationPendings => Set<VerificationPending>();
-        public DbSet<Bookmark> Bookmarks { get; set; }
+        public DbSet<Bookmark> Bookmarks => Set<Bookmark>();
 
         // chat
-        public DbSet<Chat> Chats { get; set; }
-        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Chat> Chats => Set<Chat>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
         // calendar
-        public DbSet<CalendarPeriod> CalendarPeriods { get; set; }
+        public DbSet<CalendarPeriod> CalendarPeriods => Set<CalendarPeriod>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

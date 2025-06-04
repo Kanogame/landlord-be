@@ -36,6 +36,6 @@ namespace landlord_be
         }
 
         // relations
-        public Property? Property { get; set; }
+        public Property Property { get; set; } = null!;
     }
 }

@@ -28,6 +28,6 @@ namespace landlord_be.Models
         }
 
         // relations
-        public User? User { get; set; }
+        public User User { get; set; } = null!;
     }
 }

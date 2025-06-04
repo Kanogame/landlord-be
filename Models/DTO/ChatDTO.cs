@@ -5,7 +5,7 @@ namespace landlord_be.Models.DTO
         public int OtherUserId { get; set; }
         public int PropertyId { get; set; }
 
-        public string InitialMessage { get; set; }
+        public string InitialMessage { get; set; } = "";
     }
 
     public class CreateChatRespDTO

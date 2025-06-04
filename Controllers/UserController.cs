@@ -13,18 +13,12 @@ namespace landlord_be.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController : ControllerBase
+public class UserController(ApplicationDbContext context, IConfiguration configuration)
+    : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IConfiguration _configuration;
-    private readonly Random rd;
-
-    public UserController(ApplicationDbContext context, IConfiguration configuration)
-    {
-        _context = context;
-        _configuration = configuration;
-        rd = new Random();
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly Random rd = new Random();
 
     [HttpPost("get_user_info")]
     public async Task<ActionResult<GetUserInfoRespDTO>> GetUserInfo(GetUserInfoReqDTO req)
@@ -377,7 +371,7 @@ public class UserController : ControllerBase
     private string GenerateJwtToken(User user, string firstName, string email)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
+        var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"] ?? "");
 
         // Get expiration time from configuration (default to 60 minutes if not specified)
         var expirationMinutes = _configuration.GetValue<int>("JWT:TokenExpirationMinutes", 60);
@@ -385,13 +379,12 @@ public class UserController : ControllerBase
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(
-                new[]
-                {
+                [
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, firstName),
                     new Claim(ClaimTypes.Email, email),
                     new Claim("userId", user.Id.ToString()),
-                }
+                ]
             ),
             Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
             Issuer = _configuration["JWT:ValidIssuer"],
@@ -406,37 +399,7 @@ public class UserController : ControllerBase
         return tokenHandler.WriteToken(token);
     }
 
-    private JwtSecurityToken GetToken(List<Claim> authClaims)
-    {
-        var authSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])
-        );
-
-        var token = new JwtSecurityToken(
-            issuer: _configuration["JWT:ValidIssuer"],
-            audience: _configuration["JWT:ValidAudience"],
-            expires: DateTime.Now.AddHours(3),
-            claims: authClaims,
-            signingCredentials: new SigningCredentials(
-                authSigningKey,
-                SecurityAlgorithms.HmacSha256
-            )
-        );
-
-        return token;
-    }
-
-    private int? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (int.TryParse(userIdClaim, out int userId))
-        {
-            return userId;
-        }
-        return null;
-    }
-
-    private bool IsValidEmail(string email)
+    private static bool IsValidEmail(string email)
     {
         try
         {

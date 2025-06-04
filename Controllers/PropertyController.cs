@@ -1,3 +1,7 @@
+#pragma warning disable CA1862
+// https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1862
+// "If you're using Entity Framework Core (EF Core), you should suppress this rule for scenarios where you're querying a database by comparing a string"
+
 using System.Security.Claims;
 using landlord_be.Data;
 using landlord_be.Models;
@@ -12,14 +16,9 @@ namespace landlord_be.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PropertyController : ControllerBase
+public class PropertyController(ApplicationDbContext context) : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
-
-    public PropertyController(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     private int? GetCurrentUserId()
     {
@@ -166,14 +165,19 @@ public class PropertyController : ControllerBase
             isBookmarked = await IsPropertyBookmarked(req.PropertyId, currentUserId);
         }
 
-        var dtoProperty = new DTOPropertyWithType(
-            property,
-            property.User?.Personal?.FirstName,
-            property.User?.GetProfileLink(),
-            isBookmarked
-        );
+        if (property != null)
+        {
+            var dtoProperty = new DTOPropertyWithType(
+                property,
+                property.User?.Personal?.FirstName,
+                property.User?.GetProfileLink(),
+                isBookmarked
+            );
 
-        return Ok(dtoProperty);
+            return Ok(dtoProperty);
+        }
+
+        return BadRequest(new BadRequestMessage("Failed to create property"));
     }
 
     [HttpPost("get_properties_search")]
@@ -319,8 +323,8 @@ public class PropertyController : ControllerBase
             .Select(p => new DTOPropertyWithType(
                 p,
                 p.User != null && p.User.Personal != null ? p.User.Personal.FirstName : null,
-                p.User != null ? p.User.GetProfileLink() : null,
-                currentUserId.HasValue ? bookmarkStatuses[p.Id] : null
+                p?.User?.GetProfileLink(),
+                currentUserId.HasValue ? bookmarkStatuses[p?.Id ?? 0] : null
             ))
             .ToList();
 
@@ -377,7 +381,7 @@ public class PropertyController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Add property attributes if provided
-            if (req.PropertyAttributes != null && req.PropertyAttributes.Any())
+            if (req?.PropertyAttributes?.Count > 0)
             {
                 var attributes = req
                     .PropertyAttributes.Select(attr => new PropertyAttribute
@@ -407,14 +411,19 @@ public class PropertyController : ControllerBase
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == property.Id);
 
-            var dtoProperty = new DTOPropertyWithType(
-                createdProperty,
-                createdProperty.User?.Personal?.FirstName,
-                createdProperty.User?.GetProfileLink(),
-                false // Owner's own property, not bookmarked
-            );
+            if (createdProperty != null)
+            {
+                var dtoProperty = new DTOPropertyWithType(
+                    createdProperty,
+                    createdProperty.User?.Personal?.FirstName,
+                    createdProperty.User?.GetProfileLink(),
+                    false // Owner's own property, not bookmarked
+                );
 
-            return Ok(dtoProperty);
+                return Ok(dtoProperty);
+            }
+
+            return BadRequest(new BadRequestMessage("Failed to create property"));
         }
         catch
         {
@@ -520,14 +529,19 @@ public class PropertyController : ControllerBase
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        var dtoProperty = new DTOPropertyWithType(
-            updatedProperty,
-            updatedProperty.User?.Personal?.FirstName,
-            updatedProperty.User?.GetProfileLink(),
-            false // Owner's own property, not bookmarked
-        );
+        if (updatedProperty != null)
+        {
+            var dtoProperty = new DTOPropertyWithType(
+                updatedProperty,
+                updatedProperty.User?.Personal?.FirstName,
+                updatedProperty.User?.GetProfileLink(),
+                false // Owner's own property, not bookmarked
+            );
 
-        return Ok(dtoProperty);
+            return Ok(dtoProperty);
+        }
+
+        return BadRequest(new BadRequestMessage("Failed to update property"));
     }
 
     [HttpPost("get_own_properties")]

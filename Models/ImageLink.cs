@@ -16,6 +16,6 @@ namespace landlord_be.Models
         [StringLength(255)]
         public string Link { get; set; } = "";
 
-        public Property? Property { get; set; }
+        public Property Property { get; set; } = null!;
     }
 }

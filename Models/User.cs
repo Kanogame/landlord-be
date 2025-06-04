@@ -25,9 +25,9 @@ namespace landlord_be.Models
         public DateTime UpdateDate { get; set; }
 
         // relations
-        public ICollection<Property>? Properties { get; set; }
+        public ICollection<Property> Properties { get; set; } = null!;
 
-        public Personal? Personal { get; set; }
+        public Personal Personal { get; set; } = null!;
 
         public string GetProfileLink()
         {

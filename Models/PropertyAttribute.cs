@@ -26,7 +26,7 @@ namespace landlord_be.Models
         public bool IsSearchable { get; set; } = true;
 
         // Relations
-        public Property? Property { get; set; }
+        public Property Property { get; set; } = null!;
     }
 
     public enum PropertyAttributeType

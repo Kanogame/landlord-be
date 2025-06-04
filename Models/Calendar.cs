@@ -47,7 +47,7 @@ namespace landlord_be.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        public Property? Property { get; set; }
-        public User? AttachedUser { get; set; }
+        public Property Property { get; set; } = null!;
+        public User AttachedUser { get; set; } = null!;
     }
 }

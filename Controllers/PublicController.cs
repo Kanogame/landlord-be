@@ -76,7 +76,7 @@ namespace landlord_be.Controllers
                     }
                 );
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { Success = false, Message = "Error uploading file" });
             }
@@ -89,7 +89,7 @@ namespace landlord_be.Controllers
             try
             {
                 // Validate filename to prevent directory traversal
-                if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
+                if (fileName.Contains("..") || fileName.Contains('/') || fileName.Contains('\\'))
                 {
                     return BadRequest(new { Success = false, Message = "Invalid filename" });
                 }
@@ -105,7 +105,7 @@ namespace landlord_be.Controllers
 
                 return Ok(new { Success = true, Message = "File deleted successfully" });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, new { Success = false, Message = "Error deleting file" });
             }

@@ -11,14 +11,9 @@ namespace landlord_be.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class BookmarkController : ControllerBase
+    public class BookmarkController(ApplicationDbContext context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public BookmarkController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         private int? GetCurrentUserId()
         {
