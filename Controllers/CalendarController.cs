@@ -117,7 +117,7 @@ namespace landlord_be.Controllers
 
                 if (
                     req.TransactionType == TransactionType.Buy
-                    && property.OfferTypeId != OfferType.Sale
+                    && property.OfferTypeId != OfferType.Sell
                 )
                 {
                     return BadRequest(
