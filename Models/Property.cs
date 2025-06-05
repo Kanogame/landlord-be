@@ -119,7 +119,13 @@ namespace landlord_be.Models
 
     public class DTOProperty
     {
-        public DTOProperty(Property prop, string? username, string? profileLink, bool? isBookmarked)
+        public DTOProperty(
+            Property prop,
+            string? username,
+            string? profileLink,
+            bool? isBookmarked,
+            bool? chatExists = null
+        )
         {
             Id = prop.Id;
             OwnerId = prop.OwnerId;
@@ -144,6 +150,7 @@ namespace landlord_be.Models
             Username = username ?? "";
             ProfileLink = profileLink ?? "not_found";
             IsBookmarked = isBookmarked;
+            ChatExists = chatExists;
         }
 
         public int Id { get; set; }
@@ -184,6 +191,25 @@ namespace landlord_be.Models
         public string Username { get; set; }
         public string ProfileLink { get; set; }
         public bool? IsBookmarked { get; set; }
+        public bool? ChatExists { get; set; }
+    }
+
+    public class DTOPropertyWithType
+    {
+        public DTOPropertyWithType(
+            Property property,
+            string? username,
+            string? profileLink,
+            bool? isBookmarked,
+            bool? chatExists = null
+        )
+        {
+            Type = property.OfferTypeId;
+            Property = new DTOProperty(property, username, profileLink, isBookmarked, chatExists);
+        }
+
+        public OfferType Type { get; set; }
+        public DTOProperty Property { get; set; }
     }
 
     public class Money
@@ -198,22 +224,5 @@ namespace landlord_be.Models
         public int Currency { get; set; }
 
         public string CurrencySymbol { get; set; } = "P";
-    }
-
-    public class DTOPropertyWithType
-    {
-        public DTOPropertyWithType(
-            Property property,
-            string? username,
-            string? profileLink,
-            bool? isBookmarked
-        )
-        {
-            Type = property.OfferTypeId;
-            Property = new DTOProperty(property, username, profileLink, isBookmarked);
-        }
-
-        public OfferType Type { get; set; }
-        public DTOProperty Property { get; set; }
     }
 }

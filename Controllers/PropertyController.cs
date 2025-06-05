@@ -159,10 +159,12 @@ public class PropertyController(ApplicationDbContext context) : ControllerBase
 
         var currentUserId = GetCurrentUserId();
         bool? isBookmarked = null;
+        bool? chatExists = null;
 
         if (currentUserId.HasValue)
         {
             isBookmarked = await IsPropertyBookmarked(req.PropertyId, currentUserId);
+            chatExists = await DoesChatExistForProperty(req.PropertyId, currentUserId.Value);
         }
 
         if (property != null)
@@ -171,13 +173,21 @@ public class PropertyController(ApplicationDbContext context) : ControllerBase
                 property,
                 property.User?.Personal?.FirstName,
                 property.User?.GetProfileLink(),
-                isBookmarked
+                isBookmarked,
+                chatExists
             );
 
             return Ok(dtoProperty);
         }
 
         return BadRequest(new BadRequestMessage("Failed to create property"));
+    }
+
+    private async Task<bool> DoesChatExistForProperty(int propertyId, int userId)
+    {
+        return await _context.Chats.AnyAsync(c =>
+            c.PropertyId == propertyId && (c.User1Id == userId || c.User2Id == userId)
+        );
     }
 
     [HttpPost("get_properties_search")]
